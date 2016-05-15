@@ -1,8 +1,8 @@
 ###########################################################
-##    TriMeshPy
-##        for Triangular Mesh Processing in Python
-##        with SciPy sparse matrix representation
-##
+#    TriMeshPy
+###        for Triangular Mesh Processing in Python
+###        with SciPy sparse matrix representation
+###
 ###########################################################
 
 # README #
