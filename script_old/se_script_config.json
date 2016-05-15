@@ -1,0 +1,120 @@
+{
+    "run": 
+    {
+        "translate": true, 
+        "space": true, 
+        "smooth": true, 
+        "surface_tracking": true, 
+        "dmri_tractography": true, 
+        "pft_tractography": false, 
+        "intersection": true, 
+        "fusion": true
+    },
+    "tasks":
+    {
+        "translate": 
+        {
+        },
+        "space": 
+        {
+            "auto": true,
+            "vox": "RAS",
+            "world": "LPS"
+        },
+        "smooth": 
+        {
+            "nb_step": 2,
+            "step_size": 5.0,
+            "dist_weighted": false,
+            "area_weighted": false,
+            "forward_step": false
+        },
+        "surface_tracking": 
+        {
+            "nb_step": 5,
+            "step_size": 10.0,
+            "out_normals_normed": true,
+            "out_normals_weighted": true
+        },
+        "dmri_tractography": 
+        {
+            "nb_step": 0.2,
+            "seed_step": 0.05,
+            "basis": "mrtrix",
+            "algo": "det",
+            "sh_interp": "tl",
+            "mask_interp": "nn",
+            "test": "None"
+        },
+        "intersection": 
+        {
+            "report": true
+        },
+        "fusion": 
+        {
+        }
+    },
+    "format":
+    {
+        "fodf": ".nii.gz",
+        "surface": ".vtk",
+        "streamlines": ".fib",
+        "flow": ".data",
+        "array": ".npy",
+        "points": ".npy",
+        "normals": ".npy",
+        "text": ".txt"
+    },
+    "pipeline":
+    {
+        "input":
+        {
+            "convert": ["surface", "nii"],
+            "translate": ["surface", "nii"],
+            "space": ["surface", "nii"],
+            "smooth": ["surface"],
+            "surface_tracking": ["surface"],
+            "dmri_tractography": ["fodf", "nii", "points", "normals"],
+            "pft_tractography": ["fodf", "nii", "nii", "points", "normals"],
+            "intersection": ["streamlines", "streamlines", "surface", "surface"],
+            "fusion": ["streamlines", "surface", "surface", "flow", "flow", "array", "array", "array", "array"]
+        },
+        "output":
+        {
+            "convert": ["surface"],
+            "translate": ["surface"],
+            "space": ["surface"],
+            "smooth": ["surface"],
+            "surface_tracking": ["flow", "points", "normals", "surface", "array"],
+            "dmri_tractography": ["streamlines"],
+            "pft_tractography": ["streamlines"],
+            "intersection": ["streamlines", "array", "array", "text"],
+            "fusion": ["streamlines"]
+        },
+        "dependency":
+        {
+            "convert": [["input"],
+                        ["input"]],
+            "translate": [["input", "convert"],
+                          ["input"]],
+            "space": [["input", "convert", "translate"],
+                      ["input"]],
+            "smooth": [["input", "convert", "translate", "space"]],
+            "surface_tracking": [["input", "convert", "translate", "space", "smooth"]],
+            "dmri_tractography": [["input"],
+                                  ["input"],
+                                  ["surface_tracking"], 
+                                  ["surface_tracking"]],
+            "pft_tractography": [["input"],
+                                 ["input"], 
+                                 ["input"], 
+                                 ["surface_tracking"], 
+                                 ["surface_tracking"]],
+            "intersection": [["dmri_tractography",  "pft_tractography"], 
+                             ["dmri_tractography",  "pft_tractography"],
+                             ["surface_tracking"], 
+                             ["surface_tracking"]],
+            "fusion": ["streamlines", "surface", "surface", "flow", "flow", "array", "array", "array", "array"]
+        }
+    }
+}

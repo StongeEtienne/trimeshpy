@@ -1,0 +1,4 @@
+numpy>=1.7
+scipy>=0.12
+#python-vtk>=5.8
+#vtk>=5.8
