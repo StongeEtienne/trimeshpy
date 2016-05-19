@@ -7,7 +7,6 @@ def set_input(vtk_object, current_input):
     """ Generic input for vtk data, """
     if isinstance(current_input, vtk.vtkPolyData):
         if vtk.VTK_MAJOR_VERSION <= 5:
-            print vtk_object
             vtk_object.SetInput(current_input)
         else:
             vtk_object.SetInputData(current_input)
@@ -145,7 +144,7 @@ def lines_to_vtk_polydata(lines, colors="RGB", dtype=None):#"RGB"
     # colors test, todo improve
     if colors is not None:
         if colors == "RGB":  # set automatic rgb colors
-            print "RGB to fix"
+            print "RGB to improve"
             colors = np.abs(lines[:,-1] - lines[:,0])
             colors = 0.8 * colors / np.sqrt(np.sum(colors ** 2, axis=1, keepdims=True))
             colors_mapper = np.repeat(lines_range, points_per_line, axis=0)

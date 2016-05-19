@@ -1,0 +1,10 @@
+
+*.pyc
+
+
+examples/testflow.dat
+
+
+.idea/
+.project
+.pydevproject
