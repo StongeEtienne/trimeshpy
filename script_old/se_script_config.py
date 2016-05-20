@@ -14,7 +14,7 @@ var_dict["lps"] = []
 ### mask
 bool_dict["mask"] = [[False, "--inverse_mask", "--v" ]]  # inverse index mask selection
 
-var_dict["mask"] = [["-index", "32 67 -1"]] # label from the CC and non-"Gray matter" interface # 10 22 45
+var_dict["mask"] = [["-index", "32 67 0 -1"]] # label from the CC and non-"Gray matter" interface # 10 22 45
 
 ### smooth the surface
 bool_dict["smooth"] = [[False, None, "--dist_weighted"],  # weight smooth by vertices distance

@@ -18,6 +18,7 @@ parser.add_argument('-out_vts_mask', type=str, default=None, help='output mask (
 parser.add_argument('--inverse_mask', action='store_true', default=False, help='inverse output mask')
 
 parser.add_argument('--v', action='store_true', default=False, help='view surface')
+parser.add_argument('--white', action='store_true', default=False, help='color white all label')
 parser.add_argument('--info', action='store_true', default=False, help='view surface')
 
 args = parser.parse_args()
@@ -47,6 +48,9 @@ if args.index is not None:
     if args.inverse_mask:
         mask = ~mask
     vts_color[~mask] = [0,0,0]
+    
+    if args.white:
+        vts_color[mask] = [255,255,255]
 
 mesh.update_polydata()
 mesh.set_colors(vts_color)

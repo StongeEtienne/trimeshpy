@@ -3,8 +3,8 @@
 # Etienne.St-Onge@usherbrooke.ca
 import numpy as np
 import argparse
-from trimeshpy.trimesh_vtk import TriMesh_Vtk, save_polydata
-from trimeshpy.trimeshflow_vtk import lines_to_vtk_polydata
+from trimeshpy.trimesh_vtk import TriMesh_Vtk
+from trimeshpy.vtk_util import lines_to_vtk_polydata,  save_polydata
 #from dipy.tracking.benchmarks.bench_streamline import compress_streamlines
 from dipy.viz import fvtk
 
