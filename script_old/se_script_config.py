@@ -7,7 +7,7 @@ var_dict = {}
 ### transformation
 bool_dict["lps"] = [[False, None, "--no_lps"],  # no RAS to LPS for surface
                     [False, None, "--no_xras_translation"],  # no free surfer translation error fix 
-                    [False, None, "--fx"]]  # HCP flip X
+                    [True, None, "--fx --fy"]]  # HCP flip X
 
 var_dict["lps"] = []
 
