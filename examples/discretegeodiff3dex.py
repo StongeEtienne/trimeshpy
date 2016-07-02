@@ -11,7 +11,8 @@ sphere_file_name = "../data/test_mesh/sphere.obj"
 cube_file_name = "../data/test_mesh/cube_simple.obj"
 torus_file_name = "../data/test_mesh/torus.obj"
 spot_file_name = "../data/test_mesh/spot.obj"
-brain_file_name = "../data/brain_mesh/lh_sim_tri_tau20_l3l10.ply"
+brain_file_name = "../data/brain_mesh/100307_smooth_lh.vtk"
+
 
 # Init Sphere
 s_mesh = TriMesh_Vtk(sphere_file_name, None)
