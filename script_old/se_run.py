@@ -9,6 +9,7 @@ from nibabel.freesurfer.io import read_annot
 
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.math import length
+from scipy.spatial.distance import euclidean
 
 subs = range(1,12)
 acqs = [1,2,3]
@@ -18,13 +19,16 @@ pft_npft = [False, True]
 det_prob = ["det", "prob"]
 rh_lh = ["rh", "lh"]
 
+data_path = "../../home_mint/panthera_result/"
+
 """
 #avg connectivity
-c_matrix = np.load("../home_mint/c_matrix_l10.npy")
-titles = np.load("../home_mint/c_matrix_titles.npy")
+c_matrix = np.load( data_path + "c_matrix_l10.npy")
+titles = np.load( data_path + "c_matrix_titles.npy")
+print c_matrix.shape
+
 for i in range(8):
     index = i
-    print c_matrix.shape
     #avg_matrix = np.mean(c_matrix, axis=(0,1,2)) # for all index mean
     avg_matrix = np.mean(c_matrix[index], axis=(0,1))
     print titles[index]
@@ -33,9 +37,34 @@ for i in range(8):
     plt.axes().xaxis.tick_top()
     plt.tick_params(top=False, bottom=False, pad=1)
     plt.tight_layout()
-    plt.savefig(titles[index] + ".png")
+    plt.savefig(data_path + titles[index] + ".png")
     #plt.title("mean connectivity matrix (log-scale)")
     #plt.show()
+"""
+
+"""
+#avg label info
+c_matrix = np.load( data_path + "c_matrix_l10.npy")
+titles = np.load( data_path + "c_matrix_titles.npy")
+print c_matrix.shape
+for i in range(8):
+    index = i
+    #avg_matrix = np.mean(c_matrix, axis=(0,1,2)) # for all index mean
+    avg_matrix = np.mean(c_matrix[index], axis=(0,1))
+    print titles[index]
+    print avg_matrix.shape, avg_matrix.sum()
+    
+    label_count = np.zeros([2, avg_matrix.shape[0]])
+    # label_count[0] startpoint_label
+    # label_count[1] endpoint_label
+    
+    for i,j in itertools.product(range(avg_matrix.shape[0]), range(avg_matrix.shape[1])):
+        label_count[0,i] += avg_matrix[i,j]
+        label_count[1,j] += avg_matrix[i,j]
+        
+    print label_count[0].sum(), label_count[1].sum()
+    plt.bar(np.arange(len(label_count[1])), label_count[1])
+    plt.show()
 """
 
 """
@@ -138,6 +167,7 @@ cbar_ax = fig.add_axes([0.93, 0.1, 0.02, 0.8])
 fig.colorbar(im, cax=cbar_ax)
 plt.show()
 """
+
 """
 #invalid table
 color_list =  ['lightcoral', 'darkred', 'skyblue', 'darkblue', 'lightgreen', 'darkgreen', 'khaki', 'orange']
@@ -188,7 +218,8 @@ for  st, pft, algo  in itertools.product( surftracts, pft_npft, det_prob):
     print "valid:","%.2f" % (np.mean(valid)*100)+"\%,", "%.2f" % (np.std(valid)*100)+"\% std"
     #print "%.2f" % (np.mean(invalid_list)*100)+"\%,", "%.2f" % (np.std(invalid_list)*100)+"\% std &","%.2f" % (np.mean(lengths_avg_list))+",", "%.2f" % (np.std(lengths_avg_list))+" std &","%.2f" % (np.mean(nb_smaller_10mm)*100)+"\%,", "%.2f" % (np.std(nb_smaller_10mm)*100)+"\% std &","%.2f" % (np.mean(valid)*100)+"\%,", "%.2f" % (np.std(valid)*100)+"\% std"
 """
-#"""
+
+"""
 #length statistic and histogram
 index = 0
 color_list =  ['lightcoral', 'darkred', 'skyblue', 'darkblue', 'lightgreen', 'darkgreen', 'khaki', 'orange']
@@ -243,7 +274,8 @@ plt.xlabel("Streamline length (mm)", fontsize=fontsize)
 plt.ylabel("Streamline length distribution ", fontsize=fontsize)
 plt.axis(fontsize=fontsize)
 plt.show()
-#"""
+"""
+
 """
 # plot matrix and generate full matrix file
 full_coo_array = np.zeros([len(subs),len(acqs),8 , 154, 154])
@@ -284,18 +316,17 @@ for i, j in itertools.product(range(len(subs)), range(len(acqs))):
 np.save("../home_mint/c_matrix_l10.npy", full_coo_array)
 np.save("../home_mint/c_matrix_titles.npy", np.array(titles))
 """
+
 """
 end_weigth = 1.0/3.0
+min_length = 10.0
 # RESULTS
 tag = [subs, surftracts, surftracts, pft_npft, det_prob] 
 bir_array = np.zeros([len(subs), len(subs), len(surftracts), len(pft_npft), len(det_prob)])
 for sub, acq in itertools.product(subs, acqs):
     s_acq = str(acq)
     s_sub = str(sub)
-    prefix = "../home_mint/panthera_result/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq
-    
-    rh_mask = prefix + "_/surf/rh_st_surf_mask.npy"
-    lh_mask = prefix + "_/surf/lh_st_surf_mask.npy"
+    prefix = "../../home_mint/panthera_result/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq
     
     rh_surf = prefix + "_/surf/rh.white_lps.vtk"
     lh_surf = prefix + "_/surf/lh.white_lps.vtk"
@@ -316,15 +347,15 @@ for sub, acq in itertools.product(subs, acqs):
         # load npy array (lengths , streamlines end points surface and vertex/triangle index)
         if pft:
             lengths = np.load( prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_length.npy" )
-            ids = np.load(  prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+".npy" )
+            ids = np.load( prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+".npy" )
             idv = np.load( prefix + "_/cut_idv_smooth_2_5_flow_"+st+"_"+algo+".npy" )
             
             save_matrix =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_coo_avg.npy" 
             title = "S"+s_acq+"A"+s_acq+"_"+st+"_"+algo
         else:
-            lengths = np.load(  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_length.npy" )
-            ids = np.load(  prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
-            idv = np.load(  prefix + "_/cut_idv_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
+            lengths = np.load( prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_length.npy" )
+            ids = np.load( prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
+            idv = np.load( prefix + "_/cut_idv_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
             
             save_matrix =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_coo_avg.npy" 
             title = "S"+s_acq+"A"+s_acq+"_"+st+"_"+algo+"_npft"
@@ -343,7 +374,7 @@ for sub, acq in itertools.product(subs, acqs):
             tri_idx = idv[i,1]
             end_surf_id = ids[i,1]
             if start_surf_id != -1 and end_surf_id  != -1:
-                if lengths[l_index] > 10.0:
+                if lengths[l_index] > min_length:
                     if start_surf_id == 0:
                         #label_to_label[i,0]  = vts_label[start_surf_id][start_vts_idx]
                         start_label = vts_label[start_surf_id][start_vts_idx]
@@ -372,7 +403,276 @@ for sub, acq in itertools.product(subs, acqs):
                 
         print save_matrix
         np.save(save_matrix, c_matrix)
-"""   
+"""
+
+"""
+end_weight = 1.0/3.0
+min_length = 10.0
+# Starting vertices label
+tag = [subs, surftracts, surftracts, pft_npft, det_prob] 
+bir_array = np.zeros([len(subs), len(subs), len(surftracts), len(pft_npft), len(det_prob)])
+for sub, acq in itertools.product(subs, acqs):
+    s_acq = str(acq)
+    s_sub = str(sub)
+    prefix = "../../home_mint/panthera_result/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq
+    
+    #Mask
+    rh_mask = prefix + "_/surf/rh_st_surf_mask.npy"
+    lh_mask = prefix + "_/surf/lh_st_surf_mask.npy"
+    rh_mesh_mask = np.load(rh_mask)
+    lh_mesh_mask = np.load(lh_mask)
+    rh_nonzero = np.nonzero(rh_mesh_mask)[0]
+    lh_nonzero = np.nonzero(lh_mesh_mask)[0]
+    rh_len_nonzero = len(rh_nonzero)
+    lh_len_nonzero = len(lh_nonzero)
+    
+    
+    rh_surf = prefix + "_/surf/rh.white_lps.vtk"
+    lh_surf = prefix + "_/surf/lh.white_lps.vtk"
+    rh_mesh = TriMesh_Vtk(rh_surf, None)
+    lh_mesh = TriMesh_Vtk(lh_surf, None)
+    vts = (rh_mesh.get_vertices(), lh_mesh.get_vertices())
+    tris = (rh_mesh.get_triangles(), lh_mesh.get_triangles())
+    
+    rh_annot = prefix + "_/label/rh.aparc.a2009s.annot"
+    lh_annot = prefix + "_/label/lh.aparc.a2009s.annot"
+    [rh_vts_label, rh_label_color, rh_label_name] = read_annot(rh_annot)
+    [lh_vts_label, lh_label_color, lh_label_name] = read_annot(lh_annot)
+    vts_label = (rh_vts_label, lh_vts_label)
+    nb_labels = len(rh_label_name) + len(lh_label_name) + 2 # rh + lh + spinal + gray 
+    
+    # masked label
+    rh_masked_label = rh_vts_label[rh_nonzero]
+    lh_masked_label = lh_vts_label[lh_nonzero]
+    
+    np.save(prefix + "_/rh_st_surf_starting_label.npy", rh_masked_label)
+    np.save(prefix + "_/lh_st_surf_starting_label.npy", lh_masked_label)
+
+    # masked_label_histogram
+    starting_label_histogram = np.zeros(nb_labels)
+    for label in rh_masked_label:
+        starting_label_histogram[label] += 1
+        
+    for label in lh_masked_label:
+        starting_label_histogram[label + len(rh_label_name)] += 1
+
+#     plt.bar(np.arange(len(starting_label_histogram)), starting_label_histogram/starting_label_histogram.sum())
+#     plt.title("start_points_label_histogram")
+#     plt.show()
+    np.save(prefix + "_/starting_label_histogram.npy", starting_label_histogram)
+    
+    # label stats
+    for pft, st, algo in itertools.product(pft_npft, surftracts, det_prob):
+        # load npy array (lengths , streamlines end points surface and vertex/triangle index)
+        if pft:
+            lengths = np.load( prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_length.npy" )
+            ids = np.load( prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+".npy" )
+            idv = np.load( prefix + "_/cut_idv_smooth_2_5_flow_"+st+"_"+algo+".npy" )
+            
+            save_label =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_label.npy" 
+            title = "S"+s_acq+"A"+s_acq+"_"+st+"_"+algo
+        else:
+            lengths = np.load( prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_length.npy" )
+            ids = np.load( prefix + "_/cut_ids_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
+            idv = np.load( prefix + "_/cut_idv_smooth_2_5_flow_"+st+"_"+algo+"_npft.npy" )
+            
+            save_label =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_label.npy" 
+            
+        idv_to_idv = -np.ones_like(idv)
+        #idv_to_idv[:,0] = idv[:,0]
+        
+        #label_to_label = -np.ones_like(idv)
+        label_histogram = np.zeros([2, nb_labels])
+        
+        l_index = 0
+        save_label = save_label.replace(".npy", "_l10.npy")
+
+        for i in range(len(idv)):
+            start_vts_idx = idv[i,0]
+            start_surf_id = ids[i,0]
+            
+            tri_idx = idv[i,1]
+            end_surf_id = ids[i,1]
+            if start_surf_id != -1 and end_surf_id  != -1:
+                if lengths[l_index] > min_length:
+                    if start_surf_id == 0:
+                        #label_to_label[i,0]  = vts_label[start_surf_id][start_vts_idx]
+                        start_label = vts_label[start_surf_id][start_vts_idx]
+                    elif start_surf_id == 1:
+                        start_label = vts_label[start_surf_id][start_vts_idx] + len(rh_label_name)
+                    else:
+                        start_label = nb_labels + start_surf_id - 6
+                        
+                    label_histogram[0, start_label] += 1
+                    
+                    if end_surf_id == 0:
+                        tri_pt_idx = tris[end_surf_id][tri_idx]
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[0]]] += end_weight
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[1]]] += end_weight
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[2]]] += end_weight
+                        #todo improve ?
+                        #idv_to_idv[i,1] = tri_pt_idx[0]
+                        #label_to_label[i,1]  = vts_label[end_surf_id][tri_pt_idx[0]]
+                    elif end_surf_id == 1:
+                        tri_pt_idx = tris[end_surf_id][tri_idx]
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[0]] + len(rh_label_name)] += end_weight
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[1]] + len(rh_label_name)] += end_weight
+                        label_histogram[1, vts_label[end_surf_id][tri_pt_idx[2]] + len(rh_label_name)] += end_weight
+                    else:
+                        label_histogram[1, nb_labels + end_surf_id - 6] += 1.0
+                
+                l_index += 1
+        
+#         plt.bar(np.arange(len(label_histogram[0])), starting_label_histogram - label_histogram[0]/label_histogram[0].sum())
+#         plt.title(save_label)
+#         plt.show()
+#          
+#         plt.bar(np.arange(len(label_histogram[1])), label_histogram[1]/label_histogram[1].sum())
+#         plt.title("valid end points histogram")
+#         plt.show()
+        
+        print save_label
+        np.save(save_label, label_histogram)
+"""
+def dist_histo(a,b, norm=True, euclidean=False):
+    if norm:
+        a = a/np.sum(a)
+        b = b/np.sum(b)
+    mask = ((a+b) > 0.0)
+    
+    if euclidean:
+        return np.sqrt(np.sum(np.square(a-b))) # euclidian
+    else:
+        return np.sum(np.square(a[mask]-b[mask])/(a[mask]+b[mask]))/2.0 # PDFs Chi dquare
+        #return np.mean(np.abs(a[mask]-b[mask])/(a[mask]+b[mask])) # PDFs
+
+tag = [subs, surftracts, surftracts, pft_npft, det_prob] 
+bir_array = np.zeros([len(subs), len(subs), len(surftracts), len(pft_npft), len(det_prob)])
+
+### Sum starting label histogram
+sum_seed_label = None
+for sub, acq in itertools.product(subs, acqs):
+    # file name
+    s_acq = str(acq)
+    s_sub = str(sub)
+    starting_histo_file = data_path + "/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq + "_/starting_label_histogram.npy"
+    histogram = np.load(starting_histo_file)
+        
+    if sum_seed_label is None:
+        sum_seed_label = histogram
+    else:
+        sum_seed_label += histogram
+    
+#plt.bar(np.arange(len(sum_starting_label)), sum_starting_label)
+#plt.title("starting_label_histogram")
+#plt.show()
+
+np.save(data_path + "starting_label_histogram.npy", sum_seed_label)
+
+
+# bar plot
+color_list =  ['gray', 'lightcoral', 'darkred', 'skyblue', 'darkblue', 'lightgreen', 'darkgreen', 'khaki', 'orange']
+# name_paper =  ['seed label',
+#                'local tracking - det', 'local tracking - prob', 
+#                'PFT - det', 'PFT - prob', 
+#                'surface flow, local tracking - det', 'surface flow, local tracking - prob', 
+#                'surface flow, PFT - det', 'surface flow, PFT - prob']
+
+name_paper =  ['seed label',
+               'local tracking - det ', 
+               'local tracking - prob', 
+               'PFT - det            ', 
+               'PFT - prob           ', 
+               'sf, local trk - det  ', 
+               'sf, local trk - prob ', 
+               'sf, PFT - det        ', 
+               'sf, PFT - prob       ']
+
+my_patches =  []
+fontsize = 20
+#min_v = 0
+#max_v = 100
+step_v = 0.4
+
+
+#plot the seed
+index = 0
+norm_hist_seed =  sum_seed_label/sum_seed_label.sum()
+bar_size = float(step_v)/4.0
+bin_edges = np.arange(len(sum_seed_label))
+plt.bar(bin_edges+index*bar_size, norm_hist_seed, width=bar_size, color=color_list[index], label='seed label')
+
+#print "Distance : ", "    - algo name -   ", "  - Xhi square - ", " - euclidean - "
+print "Distance : ", "    - algo name -   ", "  - Xhi square (mean, std)- ", " - euclidean - (mean, std)"
+index += 1
+### Sum algo result histogram
+
+sum_sqrt_dist_avg = []
+sum_sqrt_dist_std = []
+for st, pft, algo in itertools.product(surftracts, pft_npft, det_prob):
+    #Setup histogram
+    sum_histogram = None
+    
+    title = st+"_"+algo
+    if pft: title += "_pft"
+    else:   title += "_npft"
+    histo_dist = []
+    euc_dist = []
+    
+    for sub, acq in itertools.product(subs, acqs):
+        # file name
+        s_acq = str(acq)
+        s_sub = str(sub)
+        prefix = data_path + "/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq
+        if pft:
+            save_label =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_label.npy" 
+        else:
+            save_label =  prefix + "_/final_smooth_2_5_flow_"+st+"_"+algo+"_npft_label.npy" 
+        
+        file_name = save_label.replace(".npy", "_l10.npy")
+        
+        
+        starting_histo_file = data_path + "/S"+s_sub+"/A"+s_acq+"/S"+s_sub+"-A"+s_acq + "_/starting_label_histogram.npy"
+        starting_histo = np.load(starting_histo_file)
+        
+        # sum histogram
+        histogram = np.load(file_name)
+        histo_dist.append(dist_histo(starting_histo, histogram[0]))
+        euc_dist.append(dist_histo(starting_histo, histogram[0],euclidean=True))
+        
+        if sum_histogram is None:
+            sum_histogram = histogram
+        else:
+            sum_histogram += histogram
+    
+#     plt.bar(np.arange(len(sum_histogram[0])), sum_histogram[0])
+#     plt.title(title)
+#     plt.show()
+    #save
+    np.save(data_path + title + "_label_histo.npy", sum_histogram)
+    
+    #print "Distance : ", name_paper[index], dist_histo(sum_seed_label, sum_histogram[0]), dist_histo(sum_seed_label, sum_histogram[0],euclidean=True)
+    print name_paper[index], np.mean(histo_dist), np.std(histo_dist),"/", np.mean(euc_dist), np.std(euc_dist)
+    # plot
+    norm_hist_seed =  sum_histogram[0]/sum_histogram[0].sum()
+    bar_size = float(step_v)/4.0
+    bin_edges = np.arange(len(sum_histogram[0]))
+    #plt.bar(bin_edges+index*bar_size, norm_hist_seed, width=bar_size, color=color_list[index], label=title)
+    plt.bar(bin_edges+index*bar_size, norm_hist_seed, width=bar_size, color=color_list[index], label=name_paper[index])
+    #plt.plot(bin_edges, np.concatenate(([0], norm_hist_seed)), color=color_list[index], linewidth=2.0, label=name_paper[index])
+    #plt.legend()
+    #plt.xlim(min_v, max_v)
+    index += 1
+    
+
+plt.legend()
+# plot all
+plt.xlabel("label #", fontsize=fontsize)
+plt.ylabel("Streamline label distribution ", fontsize=fontsize)
+plt.axis(fontsize=fontsize)
+plt.show()
+    
+    
 """
 #se_stats / length  TODO
 for sub, acq, pft, st, algo in itertools.product(subs, acqs, pft_npft, surftracts, det_prob):
@@ -394,6 +694,7 @@ for sub, acq, pft, st, algo in itertools.product(subs, acqs, pft_npft, surftract
     print total
     os.system(total)
 """
+
 """
 #se_fusion
 for sub, acq, pft, st, algo in itertools.product(subs, acqs, pft_npft, surftracts, det_prob):
