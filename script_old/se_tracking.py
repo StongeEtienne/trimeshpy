@@ -5,8 +5,8 @@ import numpy as np
 import argparse
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.vtk_util import lines_to_vtk_polydata,  save_polydata
-#from dipy.tracking.benchmarks.bench_streamline import compress_streamlines
 from dipy.viz import fvtk
+from dipy.tracking.streamline import compress_streamlines
 
 parser = argparse.ArgumentParser(description='FS Surface tractography')
 parser.add_argument('surface', type=str, default=None, help='input surface')
@@ -61,12 +61,12 @@ end_mesh = TriMesh_Vtk(mesh.get_triangles(), end_vertices)
 print "saving surface tracking ..."
 flow = np.memmap(args.flow_file, dtype=np.float64, mode='r', shape=(args.nb_step, end_vertices.shape[0], end_vertices.shape[1]))
 
-"""
+
 if args.tracking is not None:
     lines = compress_streamlines(np.swapaxes(flow, 0, 1))
     lines_polydata = lines_to_vtk_polydata(lines, None, np.float32)
     save_polydata(lines_polydata, args.tracking, True)
-"""
+
     
 # save
 if args.end_points is not None:

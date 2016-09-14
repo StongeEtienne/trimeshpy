@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description='FS Surface tractography')
 parser.add_argument('volume', type=str, default=None, help='input volume or mask')
 parser.add_argument('fibers', type=str, nargs='+', default=None, help='tractography fibers (.fib)')
 
-parser.add_argument('output', type=str, default=None, help='output directions')
+parser.add_argument('-o', type=str, default=None, help='output volume dir')
 
 args = parser.parse_args()
 
@@ -41,35 +41,38 @@ print voxel_space
 # LPS -> voxel_space
 vertices_list = []
 dirs_list = []
-for streamline in init_streamlines_list:
-    if voxel_space[0] != 'L':
-        print "flip X"
-        streamline[:,0] = -streamline[:,0]
-    if voxel_space[1] != 'P':
-        print "flip Y"
-        streamline[:,1] = -streamline[:,1]
-    if voxel_space[2] != 'S':
-        print "flip Z"
-        streamline[:,2] = -streamline[:,2]
+for streamlines in init_streamlines_list:
+    for streamline in streamlines:
+        if voxel_space[0] != 'L':
+            #print "flip X"
+            streamline[:,0] = -streamline[:,0]
+        if voxel_space[1] != 'P':
+            #print "flip Y"
+            streamline[:,1] = -streamline[:,1]
+        if voxel_space[2] != 'S':
+            #print "flip Z"
+            streamline[:,2] = -streamline[:,2]
 
-    # other transfo
-    streamline = streamline - translation
-    streamline = streamline.dot(inv_rotation)
-    #streamline = streamline * scale #(if voxmm)
-    
-    vertices = 0.5*(streamline[1:] + streamline[:-1])
-    dirs = streamline[:-1] - streamline[1:]
-    
-    vertices_list.append(vertices)
-    dirs_list.append(dirs)
+        # other transfo
+        streamline = streamline - translation
+        streamline = streamline.dot(inv_rotation)
+        streamline = streamline * scale #(if voxmm)
+        
+        vertices = 0.5*(streamline[1:] + streamline[:-1])
+        dirs = streamline[:-1] - streamline[1:]
+        
+        vertices_list.append(vertices)
+        dirs_list.append(dirs)
 
 
 vertices_array = np.vstack(vertices_list)
 dirs_array = np.vstack(dirs_list)
+print vertices_array.shape, dirs_array.shape
+print vertices_array.min(0), vertices_array.max(0)
 
 
 # Change tracto to list of Vertices with directions
-for streamline in init_streamlines_list:
+#for streamline in init_streamlines_list:
 
 
 # Create a VTK -KdTree
@@ -84,7 +87,4 @@ for streamline in init_streamlines_list:
 # save volume with "RGB
 
 # Save volume with Peaks
-
-
-
 

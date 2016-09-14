@@ -5,10 +5,10 @@
 import argparse
 import numpy as np
 
-from trimeshpy.trimesh_vtk import TriMesh_Vtk, save_polydata
-from trimeshpy.trimeshflow_vtk import lines_to_vtk_polydata
+from trimeshpy.trimesh_vtk import TriMesh_Vtk
+from trimeshpy.vtk_util import lines_to_vtk_polydata,  save_polydata, load_streamlines_poyldata, get_streamlines
 
-from dipy.tracking.benchmarks.bench_streamline import compress_streamlines
+from dipy.tracking.streamline import compress_streamlines
 
 parser = argparse.ArgumentParser(description='SE flow to streamlines .fib')
 parser.add_argument('rh_surface', type=str, default=None, help='right surface')
