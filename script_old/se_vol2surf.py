@@ -7,7 +7,7 @@ from scipy.ndimage import morphology
 import mcubes # https://github.com/pmneila/PyMCubes
 
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
-
+from scipy import ndimage as ndi
 
 # example : use wmparc.a2009s.nii.gz with some aseg.stats indices
 # >>> python se_vol2surf.py s1a1/mask/S1-A1_wmparc.a2009s.nii.gz --v -index 16 5001 5002  --world_lps -opening 2 -smooth 2
@@ -24,6 +24,8 @@ parser.add_argument('-erosion', type=int, default=None, help='opening iterations
 parser.add_argument('-dilation', type=int, default=None, help='closing iterations')
 parser.add_argument('-opening', type=int, default=None, help='opening iterations')
 parser.add_argument('-closing', type=int, default=None, help='closing iterations')
+
+parser.add_argument('--max_label',action='store_true', default=False, help='label all group of voxel and take the biggest')
 
 parser.add_argument('--v', action='store_true', default=False, help='view surface')
 parser.add_argument('--world_lps', action='store_true', default=False, help='transfo to world_lps')
@@ -56,6 +58,16 @@ if args.opening is not None:
     mask = morphology.binary_opening(mask, iterations=args.opening)
 if args.closing is not None:
     mask = morphology.binary_closing(mask, iterations=args.closing)
+    
+
+# Label fill
+if args.max_label:
+    label_objects, nb_labels = ndi.label(mask)
+    sizes = np.bincount(label_objects.ravel())
+    sizes[0] = 0 # ingnore zero voxel
+    max_label = np.argmax(sizes)
+    max_mask = (label_objects == max_label)
+    mask = max_mask
 
 # Extract marching cube surface from mask
 vertices, triangles = mcubes.marching_cubes(mask, args.value)
@@ -63,7 +75,7 @@ vertices, triangles = mcubes.marching_cubes(mask, args.value)
 # Generate mesh
 mesh = TriMesh_Vtk(triangles.astype(np.int), vertices)
 
-# transformation 
+# transformation
 if args.world_lps:
     rotation = volume_nib.get_affine()[:3,:3]
     translation = volume_nib.get_affine()[:3,3]
