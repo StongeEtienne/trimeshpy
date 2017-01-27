@@ -1,6 +1,13 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+import scipy
+
+from scipy.sparse import csc_matrix
+
+from trimeshpy.math.mesh_map import edge_triangle_map, edge_sqr_length, triangle_vertex_map, vertices_degree
+from trimeshpy.math.util import length
+
 
 # Area Functions
 #
@@ -48,6 +55,7 @@ def edge_area(triangles, vertices):
 
 
 def edge_voronoi_area(triangles, vertices):
+    from trimeshpy.math.angle import edge_alpha_angle, edge_gamma_angle
     vv_l2_sqr_map = edge_sqr_length(triangles, vertices)
 
     alpha = edge_alpha_angle(triangles, vertices)
@@ -73,6 +81,8 @@ def edge_mix_area(triangles, vertices):
     #    else : (if current vertex angle(theta) < 90)
     #        area = (triangle area)/4
     ########################################################################
+    from trimeshpy.math.angle import edge_triangle_is_obtuse, edge_theta_is_obtuse
+    
     vv_area = edge_area(triangles, vertices)
     vv_voronoi_area = edge_voronoi_area(triangles, vertices)
     tri_is_obtuse = edge_triangle_is_obtuse(triangles, vertices)
@@ -102,6 +112,7 @@ def vertices_area(triangles, vertices, normalize=False):
 
 
 def vertices_voronoi_area(triangles, vertices):
+    from trimeshpy.math.angle import cotan_alpha_beta_angle
     ctn_ab_angles = cotan_alpha_beta_angle(triangles, vertices)
     vv_l2_sqr_map = edge_sqr_length(triangles, vertices)
     vts_area = ctn_ab_angles.multiply(vv_l2_sqr_map).sum(1) / 8.0

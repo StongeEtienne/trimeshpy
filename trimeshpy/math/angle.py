@@ -1,7 +1,14 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+import scipy
 
+from scipy.sparse import csc_matrix
+
+from trimeshpy.math.util import square_length
+from trimeshpy.math.mesh_map import edge_triangle_map
+
+from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 
 # Triangle Angles Functions
 #
@@ -163,6 +170,7 @@ def edge_slope_angle(triangles, vertices):
 
 # edge slope angle ( triangle's normal angle)
 def edge_triangle_normal_angle(triangles, vertices):
+    from trimeshpy.math.normal import triangles_normal
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     triangles_index = np.tile(np.arange(len(triangles)), 3)

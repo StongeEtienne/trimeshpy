@@ -1,12 +1,14 @@
 # by Etienne.St-Onge@usherbrooke.ca
 
 import numpy as np
+
+import trimeshpy
 from trimeshpy.trimesh_class import TriMesh
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 
-file_name = "../data/test_mesh/cube_simple.obj"
-#file_name = "../data/test_mesh/sphere.obj"
-#file_name = "../data/test_mesh/torus.obj"
+file_name = trimeshpy.data.cube
+#file_name = trimeshpy.data.sphere
+#file_name = trimeshpy.data.torus
 
 mesh = TriMesh_Vtk(file_name, None)
 triangles = mesh.get_triangles()

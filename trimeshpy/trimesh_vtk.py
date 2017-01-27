@@ -36,7 +36,6 @@ class TriMesh_Vtk(TriMesh):
         self.__polydata_is_up_to_date__ = False
 
     # vtk polydata function
-    # todo remove and fix the update normals
     def get_polydata(self, update_normal=False):
         if self.__polydata_is_up_to_date__ is False:
             self.update_polydata()
@@ -98,7 +97,7 @@ class TriMesh_Vtk(TriMesh):
         vtk_colors.SetName("RGB")
         self.get_polydata().GetPointData().SetScalars(vtk_colors)
 
-# Updates :
+    # Updates :
     def update_normals(self):
         normals_gen = self.polydata_input(vtk.vtkPolyDataNormals())
         normals_gen.ComputePointNormalsOn()
@@ -120,7 +119,7 @@ class TriMesh_Vtk(TriMesh):
         else:
             self.update_polydata()
 
-# Display :
+    # Display :
     def get_vtk_polymapper(self):
         poly_mapper = self.polydata_input(vtk.vtkPolyDataMapper())
         poly_mapper.ScalarVisibilityOn()
@@ -200,5 +199,3 @@ class TriMesh_Vtk(TriMesh):
     def save(self, file_name):
         self.update()
         vtk_u.save_polydata(self.__polydata__, file_name)
-
-    

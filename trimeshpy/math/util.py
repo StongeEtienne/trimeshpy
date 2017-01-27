@@ -1,6 +1,10 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+import scipy
+
+from scipy.sparse import csc_matrix, diags, identity
+from scipy.sparse.linalg import spsolve
 
 # ###################################################################
 # Generic Functions
@@ -51,8 +55,10 @@ def backward_euler_step(D_matrix, b_matrix, diffusion_step):
     x_matrix = spsolve(Ab_matrix, b_matrix)
     return x_matrix
 
+
 def sigmoid(values):
     return 1.0 / (1.0 + np.exp(-values))
 
 def softplus(values):
     return np.log(1.0 + np.exp(values))
+

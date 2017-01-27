@@ -1,6 +1,5 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
 
 # Remeshing, Upsampling and collapsing functions
 # Todo

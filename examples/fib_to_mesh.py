@@ -1,19 +1,14 @@
 
-from trimeshpy.trimesh_vtk import load_polydata, save_polydata, load_streamlines_poyldata, get_streamlines
-from trimeshpy.trimeshflow_vtk import lines_to_vtk_polydata
-import numpy as np
+import trimeshpy
+from trimeshpy.vtk_util import load_polydata, save_polydata
 
-fib_file_name = "../data/tract.fib"
-save_file = "../data/tract.xml"
+fib_file = "tract.fib"
+surface_file = "tract.vtk"
+folder_path = trimeshpy.data.output_path
+
+fib_file = trimeshpy.data.output_path + fib_file
+surface_file = trimeshpy.data.output_path + surface_file
 #save_file = "../data/tract.stl"
 
-
-polydata = load_polydata(fib_file_name)
-save_polydata(polydata, save_file)
-
-
-### load streamlines liste and save a a new smaller file
-"""lines = get_streamlines(load_streamlines_poyldata(fib_file_name))
-new_lines = lines[0:1000]
-lines_polydata = lines_to_vtk_polydata(new_lines, None, np.float32)
-save_polydata(lines_polydata, "../data/tract2.fib")"""
+polydata = load_polydata(fib_file)
+save_polydata(polydata, surface_file)

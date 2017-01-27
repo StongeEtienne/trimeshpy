@@ -1,7 +1,19 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+from scipy.sparse import csc_matrix, diags
+from scipy.sparse.linalg import spsolve
+from sys import stdout
 
+from trimeshpy.math.area import vertices_mix_area
+from trimeshpy.math.angle import edge_triangle_normal_angle
+from trimeshpy.math.curvature import vertices_cotan_curvature, vertices_gaussian_curvature
+from trimeshpy.math.mesh_map import edge_length, edge_adjacency
+from trimeshpy.math.matrix import laplacian, mass_matrix, mean_curvature_normal_matrix
+from trimeshpy.math.normal import vertices_normal, vertices_cotan_normal
+from trimeshpy.math.util import dot, euler_step, normalize_vectors
+
+from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 
 # Mesh smoothing (flow)
 # and maybe it should be in another type of mesh, test all the rest before testing this

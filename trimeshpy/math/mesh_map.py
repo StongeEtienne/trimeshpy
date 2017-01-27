@@ -1,6 +1,10 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+from scipy.sparse import csc_matrix
+
+from trimeshpy.math.util import square_length
+from trimeshpy.math.mesh_global import G_DTYPE
 
 # Mesh structure functions
 # Map ( Adjacency / Connectivity ) Functions
@@ -14,7 +18,7 @@ from trimeshpy.math import *
 #
 #    triangles array : m x 3
 #        t[a] = [ v[i], v[j], v[k] ]
-#        right handed triangles
+#        right handed triangles1111111111111
 #
 #
 # Example :

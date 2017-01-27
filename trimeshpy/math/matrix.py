@@ -1,6 +1,10 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
+import numpy as np
+from scipy.sparse import diags
+
+from trimeshpy.math.util import dot
+from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 
 # Mesh operation matrix
 def laplacian(adjacency_matrix, diag_of_1=True):
@@ -26,6 +30,8 @@ def laplacian(adjacency_matrix, diag_of_1=True):
 
 #  stiffness_matrix
 def mean_curvature_normal_matrix(triangles, vertices, area_weighted=False):
+    from trimeshpy.math.angle import cotan_alpha_beta_angle
+    from trimeshpy.math.area import vertices_mix_area
     ctn_ab_angle = cotan_alpha_beta_angle(triangles, vertices)
 
     if area_weighted:
@@ -46,7 +52,9 @@ def mean_curvature_normal_matrix(triangles, vertices, area_weighted=False):
 
 
 def positive_curvature_normal_matrix(triangles, vertices, area_weighted=False):
+    from trimeshpy.math.normal import vertices_normal
     curvature_normal_mtx = mean_curvature_normal_matrix(triangles, vertices, area_weighted)
+    
     # get flow vector and normal vector
     direction = curvature_normal_mtx.dot(vertices)
     normal_dir = vertices_normal(triangles, vertices, normalize=False)
@@ -57,6 +65,8 @@ def positive_curvature_normal_matrix(triangles, vertices, area_weighted=False):
 
 
 def mass_matrix(triangles, vertices):
+    from trimeshpy.math.area import triangles_area
+    from trimeshpy.math.mesh_map import edge_triangle_map
     tri_area = triangles_area(triangles, vertices)
     e_area = edge_triangle_map(triangles, vertices) 
     e_area.data = tri_area[e_area.data]

@@ -1,7 +1,8 @@
 # by Etienne.St-Onge@usherbrooke.ca
 
 import numpy as np  # numerical python
-import trimeshpy.math  # python triangular mesh processing
+import trimeshpy.math as tmath # python triangular mesh processing
+# python triangular mesh processing
 
 ################################################################################
 # Most of these Mesh operation come from :
@@ -27,7 +28,7 @@ class TriMesh(object):
     Vertex list
     """
 
-# Init and test arguments
+    # Init and test arguments
     def __init__(self, triangles, vertices, dtype=np.float64, atol=1e-8, assert_args=True):
         if assert_args:
             self._assert_init_args_(triangles, vertices, dtype, atol)
@@ -81,7 +82,7 @@ class TriMesh(object):
     def _test_mesh_(self, triangles, vertices):
         raise NotImplementedError()
 
-# Get class variable
+    # Get class variable
     def get_triangles(self):
         return self.__triangles__
 
@@ -100,7 +101,7 @@ class TriMesh(object):
     def get_dtype(self):
         return self.__dtype__
 
-# Set class variable
+    # Set class variable
     def set_triangles(self, triangles):
         self.__triangles__ = triangles
         self.__nb_triangles__ = len(triangles)
@@ -109,154 +110,155 @@ class TriMesh(object):
         self.__vertices__ = vertices.astype(self.__dtype__)
         self.__nb_vertices__ = len(vertices)
 
-# Get Functions
+    # Get Functions
     def nb_triangles_per_vertex(self):
         return self.vertices_degree()
 
-# Points Transformations Functions
+    # Points Transformations Functions
     def vertices_translation(self, translation):
-        return trimeshpy.math.vertices_translation(self.get_triangles(), self.get_vertices(), translation)
+        return tmath.vertices_translation(self.get_triangles(), self.get_vertices(), translation)
 
     def vertices_rotation(self, rotation):
-        return trimeshpy.math.vertices_rotation(self.get_triangles(), self.get_vertices(), rotation)
+        return tmath.vertices_rotation(self.get_triangles(), self.get_vertices(), rotation)
 
     def vertices_transformation(self, transfo):
-        return trimeshpy.math.vertices_transformation(self.get_triangles(), self.get_vertices(), transfo)
+        return tmath.vertices_transformation(self.get_triangles(), self.get_vertices(), transfo)
 
     def flip_triangle_and_vertices(self, flip=[1, 1, 1]):
-        return trimeshpy.math.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
+        return tmath.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
     
     def vertices_flip(self, flip=[1, 1, 1]):
-        return trimeshpy.math.vertices_flip(self.get_triangles(), self.get_vertices(), flip)
+        return tmath.vertices_flip(self.get_triangles(), self.get_vertices(), flip)
 
     def triangles_face_flip(self, flip=[0, 2]):
-        return trimeshpy.math.triangles_face_flip(self.get_triangles(), self.get_vertices(), flip)
+        return tmath.triangles_face_flip(self.get_triangles(), self.get_vertices(), flip)
 
-# Map ( Adjacency / Connectivity ) Functions
+    # Map ( Adjacency / Connectivity ) Functions
     def edge_map(self, l2_weighted=False):
-        return trimeshpy.math.edge_map(self.get_triangles(), self.get_vertices(), l2_weighted=l2_weighted)
+        return tmath.edge_map(self.get_triangles(), self.get_vertices(), l2_weighted=l2_weighted)
 
     def triangle_vertex_map(self):
-        return trimeshpy.math.triangle_vertex_map(self.get_triangles(), self.get_vertices())
+        return tmath.triangle_vertex_map(self.get_triangles(), self.get_vertices())
 
     def edge_triangle_map(self):
-        return trimeshpy.math.edge_triangle_map(self.get_triangles(), self.get_vertices())
+        return tmath.edge_triangle_map(self.get_triangles(), self.get_vertices())
 
     def edge_opposing_vertex(self):
-        return trimeshpy.math.edge_opposing_vertex(self.get_triangles(), self.get_vertices())
+        return tmath.edge_opposing_vertex(self.get_triangles(), self.get_vertices())
 
     def vertices_degree(self):
-        return trimeshpy.math.vertices_degree(self.get_triangles(), self.get_vertices())
+        return tmath.vertices_degree(self.get_triangles(), self.get_vertices())
 
-# Angles Functions
+    # Angles Functions
     def triangle_angle(self):
-        return trimeshpy.math.triangle_angle(self.get_triangles(), self.get_vertices())
+        return tmath.triangle_angle(self.get_triangles(), self.get_vertices())
 
     def triangle_is_obtuse(self):
-        return trimeshpy.math.triangle_is_obtuse(self.get_triangles(), self.get_vertices())
+        return tmath.triangle_is_obtuse(self.get_triangles(), self.get_vertices())
 
     def triangle_is_acute(self):
-        return trimeshpy.math.triangle_is_acute(self.get_triangles(), self.get_vertices())
+        return tmath.triangle_is_acute(self.get_triangles(), self.get_vertices())
 
     def triangle_is_right(self):
-        return trimeshpy.math.triangle_is_right(self.get_triangles(), self.get_vertices())
+        return tmath.triangle_is_right(self.get_triangles(), self.get_vertices())
 
     def edge_theta_angle(self):
-        return trimeshpy.math.edge_theta_angle(self.get_triangles(), self.get_vertices())
+        return tmath.edge_theta_angle(self.get_triangles(), self.get_vertices())
 
     def edge_alpha_angle(self):
-        return trimeshpy.math.edge_alpha_angle(self.get_triangles(), self.get_vertices())
+        return tmath.edge_alpha_angle(self.get_triangles(), self.get_vertices())
 
     def edge_gamma_angle(self):
-        return trimeshpy.math.edge_gamma_angle(self.get_triangles(), self.get_vertices())
+        return tmath.edge_gamma_angle(self.get_triangles(), self.get_vertices())
 
     def cotan_alpha_beta_angle(self):
-        return trimeshpy.math.cotan_alpha_beta_angle(self.get_triangles(), self.get_vertices())
+        return tmath.cotan_alpha_beta_angle(self.get_triangles(), self.get_vertices())
 
     def edge_triangle_is_obtuse(self):
-        return trimeshpy.math.edge_triangle_is_obtuse(self.get_triangles(), self.get_vertices())
+        return tmath.edge_triangle_is_obtuse(self.get_triangles(), self.get_vertices())
 
     def edge_triangle_is_acute(self):
-        return trimeshpy.math.edge_triangle_is_acute(self.get_triangles(), self.get_vertices())
+        return tmath.edge_triangle_is_acute(self.get_triangles(), self.get_vertices())
 
     def edge_theta_is_obtuse(self):
-        return trimeshpy.math.edge_theta_is_obtuse(self.get_triangles(), self.get_vertices())
+        return tmath.edge_theta_is_obtuse(self.get_triangles(), self.get_vertices())
 
     def edge_theta_is_acute(self):
-        return trimeshpy.math.edge_theta_is_acute(self.get_triangles(), self.get_vertices())
+        return tmath.edge_theta_is_acute(self.get_triangles(), self.get_vertices())
     
     def edge_triangle_normal_angle(self):
-        return trimeshpy.math.edge_triangle_normal_angle(self.get_triangles(), self.get_vertices())
+        return tmath.edge_triangle_normal_angle(self.get_triangles(), self.get_vertices())
 
-# Area Functions
+    # Area Functions
     def triangles_area(self):
-        return trimeshpy.math.triangles_area(self.get_triangles(), self.get_vertices())
+        return tmath.triangles_area(self.get_triangles(), self.get_vertices())
 
     def vertices_area(self, normalize=False):
-        return trimeshpy.math.vertices_area(self.get_triangles(), self.get_vertices(), normalize=normalize)
+        return tmath.vertices_area(self.get_triangles(), self.get_vertices(), normalize=normalize)
 
     def vertices_voronoi_area(self):
-        return trimeshpy.math.vertices_voronoi_area(self.get_triangles(), self.get_vertices())
+        return tmath.vertices_voronoi_area(self.get_triangles(), self.get_vertices())
 
     def edge_area(self):
-        return trimeshpy.math.edge_area(self.get_triangles(), self.get_vertices())
+        return tmath.edge_area(self.get_triangles(), self.get_vertices())
 
     def edge_voronoi_area(self):
-        return trimeshpy.math.edge_voronoi_area(self.get_triangles(), self.get_vertices())
+        return tmath.edge_voronoi_area(self.get_triangles(), self.get_vertices())
 
     def edge_mix_area(self):
-        return trimeshpy.math.edge_mix_area(self.get_triangles(), self.get_vertices())
+        return tmath.edge_mix_area(self.get_triangles(), self.get_vertices())
 
-# Normals Functions
+    # Normals Functions
     def triangles_normal(self, normalize=True):
-        return trimeshpy.math.triangles_normal(self.get_triangles(), self.get_vertices(), normalize=normalize)
+        return tmath.triangles_normal(self.get_triangles(), self.get_vertices(), normalize=normalize)
 
     def vertices_normal(self, normalize=True, area_weighted=True):
-        return trimeshpy.math.vertices_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
+        return tmath.vertices_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
     
     def vertices_cotan_normal(self, normalize=True, area_weighted=True):
-        return trimeshpy.math.vertices_cotan_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
+        return tmath.vertices_cotan_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
     
     def vertices_cotan_direction(self, normalize=True, area_weighted=True):
-        return trimeshpy.math.vertices_cotan_direction(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
-    
-    def vertices_cotan_curvature(self, area_weighted=True):
-        return trimeshpy.math.vertices_cotan_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
+        return tmath.vertices_cotan_direction(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
 
-# Mesh operation matrix
+    # Mesh operation matrix
     def laplacian(self, adjacency_matrix, diag_of_1=True):
-        return trimeshpy.math.laplacian(adjacency_matrix, diag_of_1=diag_of_1)
+        return tmath.laplacian(adjacency_matrix, diag_of_1=diag_of_1)
 
     def mean_curvature_normal_matrix(self, area_weighted=False):
-        return trimeshpy.math.mean_curvature_normal_matrix(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
+        return tmath.mean_curvature_normal_matrix(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
 
     def mass_matrix(self):
-        return trimeshpy.math.mass_matrix(self.get_triangles(), self.get_vertices())
+        return tmath.mass_matrix(self.get_triangles(), self.get_vertices())
 
+    # Curvature Functions
+    def vertices_cotan_curvature(self, area_weighted=True):
+        return tmath.vertices_cotan_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
+    
     def vertices_gaussian_curvature(self, area_weighted=False):
-        return trimeshpy.math.vertices_gaussian_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
+        return tmath.vertices_gaussian_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
 
-# Mesh smoothing (flow)
+    # Mesh smoothing (flow)
     def laplacian_smooth(self, nb_iter=1, diffusion_step=1.0, l2_dist_weighted=False, area_weighted=False, backward_step=False, flow_file=None):
-        return trimeshpy.math.laplacian_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, l2_dist_weighted=l2_dist_weighted, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
+        return tmath.laplacian_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, l2_dist_weighted=l2_dist_weighted, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
 
     def curvature_normal_smooth(self, nb_iter=1, diffusion_step=1.0, area_weighted=False, backward_step=False, flow_file=None):
-        return trimeshpy.math.curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
+        return tmath.curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
 
     def positive_curvature_normal_smooth(self, nb_iter=1, diffusion_step=1.0, area_weighted=False, backward_step=False, flow_file=None):
-        return trimeshpy.math.positive_curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
+        return tmath.positive_curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
 
     def volume_curvature_normal_smooth(self, nb_iter=1, diffusion_step=1.0, area_weighted=False, backward_step=False, flow_file=None):
-        return trimeshpy.math.volume_curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
+        return tmath.volume_curvature_normal_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
 
     def mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None):
-        return trimeshpy.math.mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
+        return tmath.mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
 
     def positive_mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None):
-        return trimeshpy.math.positive_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
+        return tmath.positive_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
 
     def volume_mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None):
-        return trimeshpy.math.volume_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
+        return tmath.volume_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
 
     def gaussian_curv_smooth(self, nb_iter=1, diffusion_step=1.0, area_weighted=False, backward_step=False, flow_file=None):
-        return trimeshpy.math.gaussian_curv_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)
+        return tmath.gaussian_curv_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, area_weighted=area_weighted, backward_step=backward_step, flow_file=flow_file)

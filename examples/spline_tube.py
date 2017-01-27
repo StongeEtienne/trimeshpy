@@ -1,22 +1,26 @@
 
-from trimeshpy.trimesh_vtk import load_polydata, save_polydata, load_streamlines_poyldata, get_streamlines
-from trimeshpy.trimesh_vtk import set_input
-from trimeshpy.trimeshflow_vtk import lines_to_vtk_polydata
 import numpy as np
-import vtk
+
+import trimeshpy
+from trimeshpy.vtk_util import  load_polydata, get_streamlines
+
 from dipy.viz.actor import streamtube
 from dipy.viz import window
 
-fib_file_name = "/home/eti/home_mint/final_smooth_2_5_flow_100_1_prob.fib"
-save_file = "/home/eti/home_mint/Nic/s100_s100_tube_flow.obj"
-#save_file = "../data/tract.stl"
+fib_file = "tract.fib"
+surface_file = "tract.vtk"
+folder_path = trimeshpy.data.output_path
+
+fib_file = trimeshpy.data.output_path + fib_file
+surface_file = trimeshpy.data.output_path + surface_file
+
 
 min_length = 10
 spline_subdiv = 100
 tube_sides = 9
 linewidth = 0.1
 
-polydata_in = load_polydata(fib_file_name)
+polydata_in = load_polydata(fib_file)
 streamlines_in = get_streamlines(polydata_in)
 streamlines = []
 
@@ -27,6 +31,7 @@ for line in streamlines_in:
     if line_length > min_length:
         streamlines.append(line)
 
+### Reduce the amount of streamlines to display
 #streamlines_sub = streamlines
 streamlines_sub = streamlines[::100]
 
@@ -38,10 +43,16 @@ renderer = window.Renderer()
 renderer.add(actor)
 my_window = window.show(renderer)
 
-#objexporter = vtk.vtkOBJExporter()
-#objexporter.SetInput(my_window)
-#objexporter.SetFileName(save_file)
-#objexporter.SetFileName("/home/eti/home_mint/Nic/s100_s100_tube_flow.obj")
-#objexporter.Write()
 
-#save_polydata(actor.GetMapper().GetInput(), save_file)
+### Save geometry (tubes streamlines) if needed
+# save_polydata(actor.GetMapper().GetInput(), surface_file)
+
+
+# display with vtk
+# import vtk
+# objexporter = vtk.vtkOBJExporter()
+# objexporter.SetInput(my_window)
+# objexporter.SetFileName(surface_file)
+# objexporter.SetFileName("/home/eti/home_mint/Nic/s100_s100_tube_flow.obj")
+# objexporter.Write()
+

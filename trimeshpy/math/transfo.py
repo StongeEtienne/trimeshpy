@@ -1,7 +1,6 @@
-# Etienne.St-Onge@usherbrooke.ca
+# by Etienne.St-Onge@usherbrooke.ca
 
-from trimeshpy.math import *
-
+import numpy as np
 
 # Points Transformations Functions
 #    vertices array : n x 3

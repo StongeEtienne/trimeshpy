@@ -1,9 +1,6 @@
-
+*~
 *.pyc
-
-
-examples/testflow.dat
-
+*.dat
 
 .idea/
 .project
