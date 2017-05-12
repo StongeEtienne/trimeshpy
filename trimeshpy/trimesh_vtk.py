@@ -1,4 +1,4 @@
-# Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 from trimesh_class import TriMesh
 import vtk
@@ -16,14 +16,17 @@ class TriMesh_Vtk(TriMesh):
         if isinstance(triangles, basestring):
             self.__polydata__ = vtk_u.load_polydata(triangles)
             self.__polydata_is_up_to_date__ = True
+            self.__polydata_color_is_scalars__ = None # TODO get loaded color info
             TriMesh.__init__(self, self.get_polydata_triangles(), self.get_polydata_vertices(), dtype=dtype, atol=atol, assert_args=assert_args)
         elif isinstance(vertices, basestring):
             self.__polydata__ = vtk_u.load_polydata(vertices)
             self.__polydata_is_up_to_date__ = True
+            self.__polydata_color_is_scalars__ = None # TODO get loaded color info
             TriMesh.__init__(self, self.get_polydata_triangles(), self.get_polydata_vertices(), dtype=dtype, atol=atol, assert_args=assert_args)
         else:
             self.__polydata__ = None
             self.__polydata_is_up_to_date__ = False
+            self.__polydata_color_is_scalars__ = None
             TriMesh.__init__(self, triangles, vertices, dtype=dtype, atol=atol, assert_args=assert_args)
 
     # set and get, add an to update bool
@@ -96,7 +99,37 @@ class TriMesh_Vtk(TriMesh):
         vtk_colors.SetNumberOfComponents(3)
         vtk_colors.SetName("RGB")
         self.get_polydata().GetPointData().SetScalars(vtk_colors)
-
+        self.__polydata_color_is_scalars__ = False
+        
+        
+    def set_scalars(self, scalars, colormap=None):
+        vtk_scalars = ns.numpy_to_vtk(scalars, deep=True)
+        vtk_scalars.SetNumberOfComponents(1)
+        vtk_scalars.SetName("Scalars")
+        self.get_polydata().GetPointData().SetScalars(vtk_scalars)
+        
+        self.__polydata_color_is_scalars__ = True
+        if colormap is not None:
+            self.set_colormap(colormap)
+        else:
+            self.set_colormap(vtk_u.generate_colormap([scalars.min(),scalars.max()]))
+        
+    def get_scalars(self):
+        vtk_scalars = self.get_polydata().GetPointData().GetScalars()
+        if vtk_scalars is None:
+            return None
+        else:
+            return ns.vtk_to_numpy(vtk_scalars)
+        
+    def set_colormap(self, colormap):
+        if self.__polydata_color_is_scalars__:
+            self.__colormap__ = colormap
+        else:
+            print("WARNING: 'set_colormap()', need to be call afterward 'set_scalars'")
+        
+    def get_colormap(self):
+        return self.__colormap__
+        
     # Updates :
     def update_normals(self):
         normals_gen = self.polydata_input(vtk.vtkPolyDataNormals())
@@ -126,6 +159,12 @@ class TriMesh_Vtk(TriMesh):
         poly_mapper.InterpolateScalarsBeforeMappingOn()
         poly_mapper.Update()
         poly_mapper.StaticOn()
+        
+        if self.__polydata_color_is_scalars__ is True:
+            poly_mapper.SetLookupTable(self.get_colormap())
+            poly_mapper.UseLookupTableScalarRangeOn()
+            poly_mapper.Update()
+                    
         return poly_mapper
 
     def get_vtk_actor(self, light=(0.1, 0.15, 0.05)):
@@ -143,12 +182,23 @@ class TriMesh_Vtk(TriMesh):
 
         return actor
 
-    def display(self, display_name="trimesh", size=(400, 400), light=(0.1, 0.15, 0.05), background=(0.0,0.0,0.0), png_magnify=1):
+    def display(self, display_name="trimesh", size=(400, 400), 
+                light=(0.1, 0.15, 0.05), background=(0.0,0.0,0.0), 
+                png_magnify=1, display_colormap="Range"):
         # from dipy.fvtk
         renderer = vtk.vtkRenderer()
         renderer.AddActor(self.get_vtk_actor(light))
         renderer.ResetCamera()
         renderer.SetBackground(background)
+        
+        if (self.__polydata_color_is_scalars__ is True 
+            and display_colormap is not None):
+            scalar_bar = vtk.vtkScalarBarActor()
+            scalar_bar.SetTitle(display_colormap)
+            scalar_bar.SetLookupTable(self.get_colormap())
+            scalar_bar.SetNumberOfLabels(7)
+            renderer.AddActor(scalar_bar)
+                
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
         # window.SetAAFrames(6)

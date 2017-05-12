@@ -3,7 +3,7 @@
 ###     for Triangular Mesh Processing in Python
 ###     with SciPy sparse matrix representation
 ###         
-###         by Etienne.St-Onge@usherbrooke.ca
+###         by Etienne St-Onge
 ###########################################################
 
 

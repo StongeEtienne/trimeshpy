@@ -1,8 +1,9 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 import numpy as np
-from scipy.sparse import csc_matrix, diags
-from scipy.sparse.linalg import spsolve
+import scipy.linalg.interpolative  
+from scipy.sparse import csc_matrix, diags, identity
+from scipy.sparse.linalg import spsolve, LinearOperator
 from sys import stdout
 
 from trimeshpy.math.area import vertices_mix_area
@@ -14,6 +15,7 @@ from trimeshpy.math.normal import vertices_normal, vertices_cotan_normal
 from trimeshpy.math.util import dot, euler_step, normalize_vectors
 
 from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
+from scipy.sparse.csc import csc_matrix
 
 # Mesh smoothing (flow)
 # and maybe it should be in another type of mesh, test all the rest before testing this
@@ -211,7 +213,7 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1, diffusion_ste
         
         pos_curv = vertices_cotan_curvature(triangles, vertices_csc, False) > - G_ATOL
         
-        # Gaussian fix
+        """# Gaussian fix
         GAUSSIAN_TRESHOLD = 0.2 # max_gauss: PI, cube corner = PI/2 # = 0.8
         deg_vts = np.abs(vertices_gaussian_curvature(triangles, vertices_csc, False)) > GAUSSIAN_TRESHOLD
         pos_curv = np.logical_or(pos_curv, deg_vts)
@@ -220,12 +222,18 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1, diffusion_ste
         ANGLE_TRESHOLD = 1.0 # max_gauss: PI, cube corner = PI/2 # = 1.7
         deg_seg = edge_triangle_normal_angle(triangles, vertices_csc).max(1).toarray().squeeze() > ANGLE_TRESHOLD
         pos_curv = np.logical_or(pos_curv, deg_seg)
-        #print " ", np.count_nonzero(deg_vts), " ", np.count_nonzero(deg_seg)
+        #print " ", np.count_nonzero(deg_vts), " ", np.count_nonzero(deg_seg)"""
         
         possitive_diffusion_step = pos_curv * diffusion_step
         
         # (D - d*L)*y = D*x = b
         A_matrix = mass_mtx - (diags(possitive_diffusion_step,0).dot(curvature_normal_mtx))
+        """A_matrix = identity(A_matrix.shape[0])
+        test = LinearOperator( A_matrix.shape, matvec=A_matrix.dot, rmatvec=A_matrix.T.dot)
+        print
+        print "matrix shape", A_matrix.shape
+        print "rank", scipy.linalg.interpolative.estimate_rank(test, 0.1)"""
+        
         b_matrix = mass_mtx.dot(vertices_csc)
         vertices_csc = spsolve(A_matrix, b_matrix)
         

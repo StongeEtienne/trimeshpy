@@ -1,6 +1,7 @@
 import vtk
 import vtk.util.numpy_support as ns
 import numpy as np
+from scipy.ndimage import map_coordinates
 
 # Utility functions
 def set_input(vtk_object, current_input):
@@ -192,3 +193,67 @@ def numpy_to_vtk_points(points):
     vtk_points = vtk.vtkPoints()
     vtk_points.SetData(ns.numpy_to_vtk(np.asarray(points), deep=True))
     return vtk_points
+
+#from Dipy
+def map_coordinates_3d_4d(input_array, indices):
+    """ Evaluate the input_array data at the given indices
+    using trilinear interpolation
+
+    Parameters
+    ----------
+    input_array : ndarray,
+        3D or 4D array
+    indices : ndarray
+
+    Returns
+    -------
+    output : ndarray
+        1D or 2D array
+    """
+
+    if input_array.ndim <= 2 or input_array.ndim >= 5:
+        raise ValueError("Input array can only be 3d or 4d")
+
+    if input_array.ndim == 3:
+        return map_coordinates(input_array, indices.T, order=1)
+
+    if input_array.ndim == 4:
+        values_4d = []
+        for i in range(input_array.shape[-1]):
+            values_tmp = map_coordinates(input_array[..., i],
+                                         indices.T, order=1)
+            values_4d.append(values_tmp)
+        return np.ascontiguousarray(np.array(values_4d).T)
+    
+#from Dipy
+def generate_colormap(scale_range=(0, 1), hue_range=(0.8, 0),
+                          saturation_range=(1, 1), value_range=(0.8, 0.8)):
+    """ Generate colormap's lookup table
+
+    Parameters
+    ----------
+    scale_range : tuple
+        It can be anything e.g. (0, 1) or (0, 255). Usually it is the mininum
+        and maximum value of your data. Default is (0, 1).
+    hue_range : tuple of floats
+        HSV values (min 0 and max 1). Default is (0.8, 0).
+    saturation_range : tuple of floats
+        HSV values (min 0 and max 1). Default is (1, 1).
+    value_range : tuple of floats
+        HSV value (min 0 and max 1). Default is (0.8, 0.8).
+
+    Returns
+    -------
+    lookup_table : vtkLookupTable
+
+    """
+    lookup_table = vtk.vtkLookupTable()
+    lookup_table.SetRange(scale_range)
+    lookup_table.SetTableRange(scale_range)
+
+    lookup_table.SetHueRange(hue_range)
+    lookup_table.SetSaturationRange(saturation_range)
+    lookup_table.SetValueRange(value_range)
+
+    lookup_table.Build()
+    return lookup_table

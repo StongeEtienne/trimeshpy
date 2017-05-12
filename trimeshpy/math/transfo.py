@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 import numpy as np
 
@@ -35,7 +35,7 @@ def flip_triangle_and_vertices(triangles, vertices, flip=[1, 1, 1]):
     # flip = [ f_x, f_y, f_y] : -1 to flip/ 1 else # todo test
     # and autorotate face if impair flip
     vertices = vertices*flip
-    if np.sum(np.equal(flip, 1))%2 == 1:
+    if np.sum(np.equal(flip, 1))%2 == 0:
         triangles_face_flip(triangles, vertices)
     return triangles, vertices
 

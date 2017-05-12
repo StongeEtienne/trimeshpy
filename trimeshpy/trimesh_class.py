@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 import numpy as np  # numerical python
 import trimeshpy.math as tmath # python triangular mesh processing
@@ -198,6 +198,9 @@ class TriMesh(object):
 
     def vertices_voronoi_area(self):
         return tmath.vertices_voronoi_area(self.get_triangles(), self.get_vertices())
+    
+    def vertices_mix_area(self):
+        return tmath.vertices_mix_area(self.get_triangles(), self.get_vertices())
 
     def edge_area(self):
         return tmath.edge_area(self.get_triangles(), self.get_vertices())

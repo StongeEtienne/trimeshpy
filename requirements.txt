@@ -6,6 +6,6 @@ scipy
 vtk (v. 5.8)
 python-vtk
 
-# for script and diffusion MRI
+# for  diffusion MRI scripts
 nibabel
 dipy

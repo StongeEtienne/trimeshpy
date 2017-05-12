@@ -1,4 +1,4 @@
-# Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 # import all MATH sub modules
 __all__ = ["angle", "area", "curvature", "matrix", "mesh_global", "mesh_map",

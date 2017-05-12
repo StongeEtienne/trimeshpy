@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 from trimesh_class import TriMesh
 import numpy as np  # numerical python

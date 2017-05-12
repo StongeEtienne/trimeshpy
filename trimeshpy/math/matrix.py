@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 import numpy as np
 from scipy.sparse import diags

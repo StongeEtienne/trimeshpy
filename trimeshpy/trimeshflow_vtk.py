@@ -1,4 +1,4 @@
-# Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 from trimesh_vtk import TriMesh_Vtk
 from trimeshflow_class import TriMeshFlow
@@ -15,6 +15,7 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
     def __init__(self, triangles, vertices_flow, dtype=np.float64, atol=1e-8, assert_args=True):
         self.__polydata__ = None
         self.__polydata_is_up_to_date__ = False
+        self.__polydata_color_is_scalars__ = None
         TriMeshFlow.__init__(self, triangles=triangles, vertices_flow=vertices_flow, dtype=dtype, atol=atol, assert_args=assert_args)
 
 

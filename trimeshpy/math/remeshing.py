@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# Etienne St-Onge
 
 
 # Remeshing, Upsampling and collapsing functions
