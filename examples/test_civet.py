@@ -1,3 +1,4 @@
+# by Etienne St-Onge 
 
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 

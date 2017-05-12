@@ -1,3 +1,4 @@
+# by Etienne St-Onge 
 
 import trimeshpy
 from trimeshpy.vtk_util import load_polydata, save_polydata

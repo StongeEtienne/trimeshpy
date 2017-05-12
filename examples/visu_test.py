@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# by Etienne St-Onge 
 
 import numpy as np
 from dipy.viz import fvtk
@@ -11,7 +11,8 @@ import trimeshpy.math as tmath
 
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_vtk import TriMeshFlow_Vtk
-from trimeshpy.vtk_util import lines_to_vtk_polydata, save_polydata
+from trimeshpy.vtk_util import lines_to_vtk_polydata, save_polydata, generate_colormap
+
 
 
 # Test files
@@ -47,7 +48,8 @@ color_curv = np.zeros([len(test_curv),3])
 max_curv_color = 10000
 color_curv[:,0] = np.maximum(-test_curv,0) * max_curv_color / np.abs(test_curv).max()
 color_curv[:,2] = np.maximum(test_curv,0) * max_curv_color / np.abs(test_curv).max()
-mesh.set_colors(color_curv)
+#mesh.set_colors(color_curv)
+mesh.set_scalars(test_curv)
 mesh.display()
 exit()
 """
