@@ -1,4 +1,4 @@
-# by Etienne.St-Onge@usherbrooke.ca
+# by Etienne St-Onge 
 
 import trimeshpy
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
