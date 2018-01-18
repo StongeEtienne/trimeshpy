@@ -6,6 +6,7 @@ import scipy
 from scipy.sparse import csc_matrix, diags, identity
 from scipy.sparse.linalg import spsolve
 
+
 # ###################################################################
 # Generic Functions
 def square_length(vectors, axis=1, keepdims=False):
@@ -43,7 +44,8 @@ def euler_step(D_matrix, b_matrix, diffusion_step, backward_step=False):
 # matrix need to be csc_matrix (not float128)
 def forward_euler_step(D_matrix, b_matrix, diffusion_step):
     # find 'x' where : x = ( I + d*D )b  <=> x = Af*b
-    Af_matrix = csc_matrix(identity(b_matrix.shape[0])) + diags(diffusion_step, 0).dot(D_matrix)
+    Af_matrix = csc_matrix(
+        identity(b_matrix.shape[0])) + diags(diffusion_step, 0).dot(D_matrix)
     x_matrix = Af_matrix.dot(b_matrix)
     return x_matrix
 
@@ -51,7 +53,8 @@ def forward_euler_step(D_matrix, b_matrix, diffusion_step):
 # matrix need to be csc_matrix (not float128)
 def backward_euler_step(D_matrix, b_matrix, diffusion_step):
     # find 'x' where : ( I - d*D )x = b  <=> Ab*x = b
-    Ab_matrix = csc_matrix(identity(b_matrix.shape[0])) - diags(diffusion_step, 0).dot(D_matrix)
+    Ab_matrix = csc_matrix(
+        identity(b_matrix.shape[0])) - diags(diffusion_step, 0).dot(D_matrix)
     x_matrix = spsolve(Ab_matrix, b_matrix)
     return x_matrix
 
@@ -59,6 +62,6 @@ def backward_euler_step(D_matrix, b_matrix, diffusion_step):
 def sigmoid(values):
     return 1.0 / (1.0 + np.exp(-values))
 
+
 def softplus(values):
     return np.log(1.0 + np.exp(values))
-

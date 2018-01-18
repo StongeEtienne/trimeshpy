@@ -10,6 +10,7 @@ from trimeshpy.math.mesh_map import edge_triangle_map
 
 from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 
+
 # Triangle Angles Functions
 #
 #  vi
@@ -29,28 +30,21 @@ def triangle_angle(triangles, vertices):
     if scipy.sparse.__name__ in type(vertices).__module__:
         vertices = vertices.toarray()
     # get theta angles for each points in each triangles
-    edges_sqr_length = square_length(vertices[np.roll(triangles, 1, axis=1)]
-                                     - vertices[np.roll(triangles, -1, axis=1)], axis=2)
-    edges_length = np.sqrt(edges_sqr_length)
+    e_sqr_length = square_length(vertices[np.roll(triangles, 1, axis=1)] -
+                                 vertices[np.roll(triangles, -1, axis=1)],
+                                 axis=2)
+    e_length = np.sqrt(e_sqr_length)
 
     # get the every angles of each triangles (opposite angles)
     tri_angles = np.zeros_like(triangles, dtype=G_DTYPE)
-    tri_angles[:, 0] = np.arccos((edges_sqr_length[:, 1] + edges_sqr_length[:, 2] - edges_sqr_length[:, 0])
-                                 / (2.0 * edges_length[:, 1] * edges_length[:, 2]))
-    tri_angles[:, 1] = np.arccos((edges_sqr_length[:, 0] + edges_sqr_length[:, 2] - edges_sqr_length[:, 1])
-                                 / (2.0 * edges_length[:, 0] * edges_length[:, 2]))
+    tri_angles[:, 0] = np.arccos((e_sqr_length[:, 1] + e_sqr_length[:, 2] - e_sqr_length[:, 0]) / (2.0 * e_length[:, 1] * e_length[:, 2]))
+    tri_angles[:, 1] = np.arccos((e_sqr_length[:, 0] + e_sqr_length[:, 2] - e_sqr_length[:, 1]) / (2.0 * e_length[:, 0] * e_length[:, 2]))
     tri_angles[:, 2] = (np.pi - tri_angles[:, 0] - tri_angles[:, 1])
 
-    ########################################################################
-    # print "min angle ", np.min(tri_angles)
-    # print (np.arccos((edges_sqr_length[:,0]+edges_sqr_length[:,1]
-    #                   - edges_sqr_length[:,2])/(2.0*edges_length[:,0]*edges_length[:,1])) - tri_angles[:,2])
-    ########################################################################
-    # assert (np.min(tri_angles) > G_ATOL)
-    #assert np.allclose(np.arccos((edges_sqr_length[:, 0] + edges_sqr_length[:, 1] - edges_sqr_length[:, 2]) / (2.0*edges_length[:, 0]*edges_length[:, 1])), tri_angles[:, 2], atol=G_ATOL)
-    if not np.allclose(np.arccos((edges_sqr_length[:, 0] + edges_sqr_length[:, 1] - edges_sqr_length[:, 2]) / (2.0*edges_length[:, 0]*edges_length[:, 1])), tri_angles[:, 2], atol=G_ATOL):
-        print "WARNING :: triangle_angle"
-    
+    if not np.allclose(
+            np.arccos((e_sqr_length[:, 0] + e_sqr_length[:, 1] - e_sqr_length[:, 2]) / (2.0 * e_length[:, 0] * e_length[:, 1])), tri_angles[:, 2], atol=G_ATOL):
+        print("WARNING :: triangle_angle")
+
     return tri_angles
 
 
@@ -86,12 +80,12 @@ def triangle_is_right(triangles, vertices):
 #
 def edge_theta_angle(triangles, vertices):
     # get the every angles of each triangles
-    triangles_angles = triangle_angle(triangles, vertices)
+    t_angles = triangle_angle(triangles, vertices)
 
     # Get the theta of the next edge
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
-    theta = np.hstack([triangles_angles[:, 0], triangles_angles[:, 1], triangles_angles[:, 2]])
+    theta = np.hstack([t_angles[:, 0], t_angles[:, 1], t_angles[:, 2]])
     # for the beta angle :  beta [j,i] = alpha[i,j]
     theta_map = csc_matrix((theta, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
     return theta_map
@@ -102,13 +96,13 @@ def edge_alpha_angle(triangles, vertices):
     #  alpha_map[i,j] = beta_map[j,i]
 
     # get the every angles of each triangles
-    triangles_angles = triangle_angle(triangles, vertices)
+    t_angles = triangle_angle(triangles, vertices)
 
     # Get the Alpha Beta angle for each edge in a connectivity matrix
     # get (directed) edge list  (row = i)(col=j) alpha
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
-    alpha = np.hstack([triangles_angles[:, 2], triangles_angles[:, 0], triangles_angles[:, 1]])
+    alpha = np.hstack([t_angles[:, 2], t_angles[:, 0], t_angles[:, 1]])
     # for the beta angle :  beta [j,i] = alpha[i,j]
     alpha_map = csc_matrix((alpha, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
     return alpha_map
@@ -116,12 +110,12 @@ def edge_alpha_angle(triangles, vertices):
 
 def edge_gamma_angle(triangles, vertices):
     # get the every angles of each triangles
-    triangles_angles = triangle_angle(triangles, vertices)
+    t_angles = triangle_angle(triangles, vertices)
 
     # Get the theta of the next edge
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
-    gamma = np.hstack([triangles_angles[:, 1], triangles_angles[:, 2], triangles_angles[:, 0]])
+    gamma = np.hstack([t_angles[:, 1], t_angles[:, 2], t_angles[:, 0]])
     # for the beta angle :  beta [j,i] = alpha[i,j]
     gamma_map = csc_matrix((gamma, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
     return gamma_map
@@ -175,12 +169,12 @@ def edge_triangle_normal_angle(triangles, vertices):
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     triangles_index = np.tile(np.arange(len(triangles)), 3)
     vv_t_map = csc_matrix((triangles_index, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
-    
-    triangle_normals = triangles_normal(triangles, vertices, True)
-    
-    e_angles = np.sum(np.squeeze(triangle_normals[vv_t_map[vts_i, vts_j]]
-                                 * triangle_normals[vv_t_map[vts_j, vts_i]]), axis=1)
-    e_angles = np.arccos(np.minimum(1, e_angles))  # clamp to 1 due to float precision
-    
+
+    t_normals = triangles_normal(triangles, vertices, True)
+
+    e_angles = np.sum(np.squeeze(t_normals[vv_t_map[vts_i, vts_j]] * t_normals[vv_t_map[vts_j, vts_i]]), axis=1)
+    # clamp to 1 due to float precision
+    e_angles = np.arccos(np.minimum(1, e_angles))
+
     vv_t_angle_map = csc_matrix((e_angles, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
     return vv_t_angle_map

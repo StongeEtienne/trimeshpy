@@ -13,15 +13,15 @@ from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_vtk import TriMeshFlow_Vtk
 from trimeshpy.vtk_util import lines_to_vtk_polydata, save_polydata, generate_colormap
 
-
+from matplotlib import cm
 
 # Test files
-file_name = trimeshpy.data.spot
+file_name = trimeshpy.data.brain_lh
 
 mesh = TriMesh_Vtk(file_name, None)
 triangles = mesh.get_triangles()
 vertices = mesh.get_vertices()
-mesh.display()
+#mesh.display()
 
 """
 from scipy.spatial import Delaunay
@@ -36,23 +36,30 @@ mesh.set_triangles(tri.simplices[:,0:3])
 mesh.display()
 """
 
-"""
+
 #pre-smooth
-vertices = mesh.laplacian_smooth(2, 5.0, l2_dist_weighted=False, area_weighted=False, backward_step=True, flow_file=None)
-mesh.set_vertices(vertices)
+#vertices = mesh.laplacian_smooth(2, 5.0, l2_dist_weighted=False, area_weighted=False, backward_step=True, flow_file=None)
+#mesh.set_vertices(vertices)
 #mesh.display()
 
 # test colors curvature
 test_curv = mesh.vertices_cotan_curvature(False)
 color_curv = np.zeros([len(test_curv),3])
-max_curv_color = 10000
-color_curv[:,0] = np.maximum(-test_curv,0) * max_curv_color / np.abs(test_curv).max()
-color_curv[:,2] = np.maximum(test_curv,0) * max_curv_color / np.abs(test_curv).max()
+color_curv[:,0] = np.maximum(-test_curv,0)  / np.abs(test_curv).max()
+color_curv[:,2] = np.maximum(test_curv,0)  / np.abs(test_curv).max()
 #mesh.set_colors(color_curv)
-mesh.set_scalars(test_curv)
+cmap = generate_colormap([0,90],hue_range=[0.65,0], saturation_range=[0.8,0.8], value_range=[0.8,0.8])#scale_range=[0,1], hue_range=[0,1], saturation_range=[0,1], value_range=[0])
+print cmap.GetNumberOfTableValues()
+for i in range(256):
+    v = cm.jet(i)
+    
+    cmap.SetTableValue(i, v[0],v[1],v[2], v[3])
+
+test_curv=test_curv*5.0
+mesh.set_scalars(test_curv, cmap)
 mesh.display()
 exit()
-"""
+
 
 tri_mesh_flow = TriMeshFlow_Vtk(triangles, vertices)
 print tri_mesh_flow.get_nb_vertices(), tri_mesh_flow.get_nb_triangles()

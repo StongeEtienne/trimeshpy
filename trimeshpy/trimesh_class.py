@@ -1,23 +1,26 @@
 # Etienne St-Onge
 
 import numpy as np  # numerical python
-import trimeshpy.math as tmath # python triangular mesh processing
+import trimeshpy.math as tmath
 # python triangular mesh processing
 
-################################################################################
+##########################################################################
 # Most of these Mesh operation come from :
 # -Discrete Differential-Geometry Operators for Triangulated 2-Manifolds :
-#     by Mark Meyer[1], Mathieu Desbrun[1,2], Peter Schroder[1] and Alan H. Barr[1]; [1]Caltech, [2]USC
+#     by Mark Meyer[1], Mathieu Desbrun[1,2], Peter Schroder[1]
+#        and Alan H. Barr[1]; [1]Caltech, [2]USC
 # -Geometric Signal Processing on Polygonal Meshes
-################################################################################
+##########################################################################
 
-################################################################################
+##########################################################################
 # TODO
 # Decorator to use all these function as static method with inputs
 # Where you always need to give (self.get_triangles, self.get_vertices()) and with option (dtype, atol)
 # where : my_adjancency_mtx = trimesh.TriMesh(my_triangles, my_vertices).vertex_vertex_map()
 # become: my_adjancency_mtx = trimesh.vertex_vertex_map(my_triangles, my_vertices)
-################################################################################
+##########################################################################
+
+
 class TriMesh(object):
     """
      Triangle Mesh class
@@ -29,58 +32,74 @@ class TriMesh(object):
     """
 
     # Init and test arguments
-    def __init__(self, triangles, vertices, dtype=np.float64, atol=1e-8, assert_args=True):
+    def __init__(self, triangles, vertices, dtype=np.float64,
+                 atol=1e-8, assert_args=True):
+
         if assert_args:
             self._assert_init_args_(triangles, vertices, dtype, atol)
-            # self._test_mesh_(self.get_triangles, self.get_vertices())
+
+        self.__dtype__ = dtype
+        self.__atol__ = atol
 
         # Never use private variable
         # Always use Get and Set!
-        self.__dtype__ = dtype
-        self.__atol__ = atol
         self.set_triangles(triangles)
         self.set_vertices(vertices.astype(dtype))
 
     def _assert_init_args_(self, triangles, vertices, dtype, atol):
         self._assert_triangles_(triangles)
         self._assert_vertices_(vertices)
+        self._assert_edges_(triangles, vertices, atol)
         self._assert_dtype_(dtype)
         self._assert_atol_(atol, dtype)
 
     def _assert_triangles_(self, triangles):
         # test "triangles" arguments, type and shape
         assert type(triangles).__module__ == np.__name__, \
-            "triangles should be a numpy array, not: %r" % type(triangles)
+            ("triangles should be a numpy array, not: %r" % type(triangles))
         assert(np.issubdtype(triangles.dtype, np.integer)), \
-            "triangles should be an integer(index), not: %r" % triangles.dtype
+            ("triangles should be an integer(index), not: %r" %
+             triangles.dtype)
         assert(triangles.shape[1] == 3), \
-            "each triangle should have 3 points, not: %r" % triangles.shape[1]
+            ("each triangle should have 3 points, not: %r" %
+             triangles.shape[1])
         assert(triangles.ndim == 2), \
-            "triangles array should only have 2 dimension, not: %r" % triangles.ndim
+            ("triangles array should only have 2 dimension, not: %r" %
+             triangles.ndim)
+        assert(np.issubdtype(triangles.dtype, np.integer)), \
+            ("triangles should be an integer(index), not: %r" %
+             triangles.dtype)
 
     def _assert_vertices_(self, vertices):
         # test "vertices" arguments, type and shape
         assert(type(vertices).__module__ == np.__name__), \
             "vertices should be a numpy array, not: %r" % type(vertices)
-        assert(np.issubdtype(vertices.dtype, np.floating) or np.issubdtype(vertices.dtype, np.integer)), \
-            "vertices should be number(float or integer), not: %r" % type(vertices)
+        assert(np.issubdtype(vertices.dtype, np.floating) or
+               np.issubdtype(vertices.dtype, np.integer)), \
+            ("vertices should be number(float or integer), not: %r" %
+             type(vertices))
         assert(vertices.shape[1] == 3), \
-            "each vertex should be 3 dimensional, not: %r" % vertices.shape[1]
+            ("each vertex should be 3 dimensional, not: %r" %
+             vertices.shape[1])
         assert(vertices.ndim == 2), \
-            "vertices array should only have 2 dimension, not: %r" % vertices.ndim
+            ("vertices array should only have 2 dimension, not: %r" %
+             vertices.ndim)
+
+    def _assert_edges_(self, triangles, vertices, atol):
+        e_sqr_length = tmath.square_length(vertices[np.roll(triangles, 1, axis=1)] - vertices[np.roll(triangles, -1, axis=1)], axis=2)
+        assert((e_sqr_length > atol).all()), \
+            ("triangles should not have zero length edges")
 
     def _assert_dtype_(self, dtype):
         assert(np.issubdtype(dtype, np.floating)), \
-            "dtype should be a float, not: %r" % dtype
+            ("dtype should be a float, not: %r" % dtype)
 
     def _assert_atol_(self, atol, dtype):
         assert(np.issubdtype(type(atol), np.floating)), \
-            "dtype should be a float, not: %r" % type(atol)
+            ("dtype should be a float, not: %r" % type(atol))
         assert(atol > np.finfo(dtype).eps), \
-            "atol should be bigger than dtype machine epsilon: %r !> %r " % (atol, np.finfo(dtype).eps)
-
-    def _test_mesh_(self, triangles, vertices):
-        raise NotImplementedError()
+            ("atol should be bigger than dtype machine epsilon: %r !> %r " %
+             (atol, np.finfo(dtype).eps))
 
     # Get class variable
     def get_triangles(self):
@@ -126,7 +145,7 @@ class TriMesh(object):
 
     def flip_triangle_and_vertices(self, flip=[1, 1, 1]):
         return tmath.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
-    
+
     def vertices_flip(self, flip=[1, 1, 1]):
         return tmath.vertices_flip(self.get_triangles(), self.get_vertices(), flip)
 
@@ -185,7 +204,7 @@ class TriMesh(object):
 
     def edge_theta_is_acute(self):
         return tmath.edge_theta_is_acute(self.get_triangles(), self.get_vertices())
-    
+
     def edge_triangle_normal_angle(self):
         return tmath.edge_triangle_normal_angle(self.get_triangles(), self.get_vertices())
 
@@ -198,7 +217,7 @@ class TriMesh(object):
 
     def vertices_voronoi_area(self):
         return tmath.vertices_voronoi_area(self.get_triangles(), self.get_vertices())
-    
+
     def vertices_mix_area(self):
         return tmath.vertices_mix_area(self.get_triangles(), self.get_vertices())
 
@@ -217,10 +236,10 @@ class TriMesh(object):
 
     def vertices_normal(self, normalize=True, area_weighted=True):
         return tmath.vertices_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
-    
+
     def vertices_cotan_normal(self, normalize=True, area_weighted=True):
         return tmath.vertices_cotan_normal(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
-    
+
     def vertices_cotan_direction(self, normalize=True, area_weighted=True):
         return tmath.vertices_cotan_direction(self.get_triangles(), self.get_vertices(), normalize=normalize, area_weighted=area_weighted)
 
@@ -237,7 +256,7 @@ class TriMesh(object):
     # Curvature Functions
     def vertices_cotan_curvature(self, area_weighted=True):
         return tmath.vertices_cotan_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
-    
+
     def vertices_gaussian_curvature(self, area_weighted=False):
         return tmath.vertices_gaussian_curvature(self.get_triangles(), self.get_vertices(), area_weighted=area_weighted)
 

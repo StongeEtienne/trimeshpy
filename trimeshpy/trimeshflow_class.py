@@ -1,6 +1,6 @@
 # Etienne St-Onge
 
-from trimesh_class import TriMesh
+from trimeshpy.trimesh_class import TriMesh
 import numpy as np  # numerical python
 
 
@@ -13,7 +13,9 @@ import numpy as np  # numerical python
 class TriMeshFlow(TriMesh):
 
     # Init and test arguments
-    def __init__(self, triangles, vertices_flow, dtype=np.float64, atol=1e-8, assert_args=True):
+    def __init__(self, triangles, vertices_flow,
+                 dtype=np.float64, atol=1e-8, assert_args=True):
+
         if assert_args:
             self._assert_init_args_(triangles, vertices_flow, dtype, atol)
 
@@ -27,15 +29,18 @@ class TriMeshFlow(TriMesh):
 
     # Redefinition
     def _assert_vertices_(self, vertices):
-        # test "vertices" arguments, type and shape
         assert(type(vertices).__module__ == np.__name__), \
-            "vertices_flow should be a numpy array, not: %r" % type(vertices)
-        assert(np.issubdtype(vertices.dtype, np.floating) or np.issubdtype(vertices.dtype, np.integer)), \
-            "vertices_flow should be number(float or integer), not: %r" % type(vertices)
+            ("vertices_flow should be a numpy array, not: %r" % type(vertices))
+        assert(np.issubdtype(vertices.dtype, np.floating) or
+               np.issubdtype(vertices.dtype, np.integer)), \
+            ("vertices_flow should be number(float or integer), not: %r" %
+             type(vertices))
         assert(vertices.shape[-1] == 3), \
-            "each vertex should be 3 dimensional, not: %r" % vertices.shape[1]
+            ("each vertex should be 3 dimensional, not: %r" %
+             vertices.shape[1])
         assert(vertices.ndim == 2 or vertices.ndim == 3), \
-            "vertices_flow array should only have 2 dimension, not: %r" % vertices.ndim
+            ("vertices_flow array should only have 2 dimension, not: %r" %
+             vertices.ndim)
 
 # Get class variable
     def get_triangles(self):
@@ -76,7 +81,8 @@ class TriMeshFlow(TriMesh):
 
     def set_vertices_flow(self, vertices_flow):
         if vertices_flow.ndim == 2:
-            self.__vertices_flow__ = vertices_flow[np.newaxis].astype(self.__dtype__)
+            self.__vertices_flow__ = vertices_flow[
+                np.newaxis].astype(self.__dtype__)
             self.__flow_length__ = 1
             self.__nb_vertices__ = len(vertices_flow)
 
@@ -85,8 +91,11 @@ class TriMeshFlow(TriMesh):
             self.__flow_length__ = vertices_flow.shape[0]
             self.__nb_vertices__ = vertices_flow.shape[1]
 
-    def set_vertices_flow_from_memmap(self, vertices_flow_memmap, flow_length, nb_vertices):
-        self.__vertices_flow__ = np.array(np.memmap(vertices_flow_memmap, dtype=self.get_dtype(), mode='r', shape=(flow_length, nb_vertices, 3)))
+    def set_vertices_flow_from_memmap(self, vertices_flow_memmap,
+                                      flow_length, nb_vertices):
+        self.__vertices_flow__ = np.array(np.memmap(
+            vertices_flow_memmap, dtype=self.get_dtype(), mode='r',
+            shape=(flow_length, nb_vertices, 3)))
 
     def set_vertices(self, vertices_flow):
         # use set_vertices_flow

@@ -6,6 +6,7 @@ from scipy.sparse import diags
 from trimeshpy.math.util import dot
 from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 
+
 # Mesh operation matrix
 def laplacian(adjacency_matrix, diag_of_1=True):
     # A_ij = adjacency_map ( or weighted connectivity map )
@@ -22,9 +23,9 @@ def laplacian(adjacency_matrix, diag_of_1=True):
         # normalize by the max
         laplacian_mtx = laplacian_mtx / np.abs(laplacian_mtx.data).max()
 
-    #assert(np.allclose(laplacian_mtx.sum(1), 0.0, atol=G_ATOL))
+    # assert(np.allclose(laplacian_mtx.sum(1), 0.0, atol=G_ATOL))
     if not np.allclose(laplacian_mtx.sum(1), 0.0, atol=G_ATOL):
-        print "WARNING :: laplacian"
+        print("WARNING :: laplacian")
     return laplacian_mtx
 
 
@@ -40,21 +41,22 @@ def mean_curvature_normal_matrix(triangles, vertices, area_weighted=False):
         # Kn(xi) = 0.5/Ai * L(ctn_ab[i,j])*X
         lap_ctn_ab_angle = laplacian(ctn_ab_angle, diag_of_1=False)
         vts_mix_area = vertices_mix_area(triangles, vertices)
-        curvature_normal_mtx = diags(vts_mix_area.min() / vts_mix_area, 0).dot(lap_ctn_ab_angle)
-        # curvature_normal_mtx = diags( 0.5 / vts_mix_area, 0).dot(lap_ctn_ab_angle)
+        curvature_normal_mtx = diags(
+            vts_mix_area.min() / vts_mix_area, 0).dot(lap_ctn_ab_angle)
     else:
         curvature_normal_mtx = laplacian(ctn_ab_angle, diag_of_1=True)
 
-    #assert(np.allclose(curvature_normal_mtx.sum(1), 0.0, atol=G_ATOL))
+    # assert(np.allclose(curvature_normal_mtx.sum(1), 0.0, atol=G_ATOL))
     if not np.allclose(curvature_normal_mtx.sum(1), 0.0, atol=G_ATOL):
-        print "WARNING :: mean_curvature_normal_matrix"
+        print("WARNING :: mean_curvature_normal_matrix")
     return curvature_normal_mtx
 
 
 def positive_curvature_normal_matrix(triangles, vertices, area_weighted=False):
     from trimeshpy.math.normal import vertices_normal
-    curvature_normal_mtx = mean_curvature_normal_matrix(triangles, vertices, area_weighted)
-    
+    curvature_normal_mtx = mean_curvature_normal_matrix(
+        triangles, vertices, area_weighted)
+
     # get flow vector and normal vector
     direction = curvature_normal_mtx.dot(vertices)
     normal_dir = vertices_normal(triangles, vertices, normalize=False)
@@ -68,9 +70,10 @@ def mass_matrix(triangles, vertices):
     from trimeshpy.math.area import triangles_area
     from trimeshpy.math.mesh_map import edge_triangle_map
     tri_area = triangles_area(triangles, vertices)
-    e_area = edge_triangle_map(triangles, vertices) 
+    e_area = edge_triangle_map(triangles, vertices)
     e_area.data = tri_area[e_area.data]
-    # e_area = edge_mix_area(triangles, vertices)  # with vertices mix area edge_voronoi_area
+    # e_area = edge_mix_area(triangles, vertices)  # with vertices mix area
+    # edge_voronoi_area
     e_area = (e_area + e_area.T) / 12.0
     weights = np.squeeze(np.array(e_area.sum(1)))
     mass_mtx = e_area + diags(weights, 0)

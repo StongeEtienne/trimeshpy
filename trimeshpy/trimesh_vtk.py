@@ -1,33 +1,40 @@
 # Etienne St-Onge
 
-from trimesh_class import TriMesh
+from trimeshpy.trimesh_class import TriMesh
+import trimeshpy.vtk_util as vtk_u
 import vtk
 import vtk.util.numpy_support as ns
-import vtk_util as vtk_u
 
 import numpy as np
 
 
+# TODO load color info
 class TriMesh_Vtk(TriMesh):
     # Get and Set
     # PolyData
 
-    def __init__(self, triangles, vertices, dtype=np.float64, atol=1e-8, assert_args=True):
+    def __init__(self, triangles, vertices, dtype=np.float64,
+                 atol=1e-8, assert_args=True):
         if isinstance(triangles, basestring):
             self.__polydata__ = vtk_u.load_polydata(triangles)
             self.__polydata_is_up_to_date__ = True
-            self.__polydata_color_is_scalars__ = None # TODO get loaded color info
-            TriMesh.__init__(self, self.get_polydata_triangles(), self.get_polydata_vertices(), dtype=dtype, atol=atol, assert_args=assert_args)
+            self.__polydata_color_is_scalars__ = None
+            TriMesh.__init__(self, self.get_polydata_triangles(),
+                             self.get_polydata_vertices(),
+                             dtype=dtype, atol=atol, assert_args=assert_args)
         elif isinstance(vertices, basestring):
             self.__polydata__ = vtk_u.load_polydata(vertices)
             self.__polydata_is_up_to_date__ = True
-            self.__polydata_color_is_scalars__ = None # TODO get loaded color info
-            TriMesh.__init__(self, self.get_polydata_triangles(), self.get_polydata_vertices(), dtype=dtype, atol=atol, assert_args=assert_args)
+            self.__polydata_color_is_scalars__ = None
+            TriMesh.__init__(self, self.get_polydata_triangles(),
+                             self.get_polydata_vertices(),
+                             dtype=dtype, atol=atol, assert_args=assert_args)
         else:
             self.__polydata__ = None
             self.__polydata_is_up_to_date__ = False
             self.__polydata_color_is_scalars__ = None
-            TriMesh.__init__(self, triangles, vertices, dtype=dtype, atol=atol, assert_args=assert_args)
+            TriMesh.__init__(self, triangles, vertices,
+                             dtype=dtype, atol=atol, assert_args=assert_args)
 
     # set and get, add an to update bool
     def set_triangles(self, triangles):
@@ -55,14 +62,16 @@ class TriMesh_Vtk(TriMesh):
     def get_polydata_triangles(self):
         vtk_polys = ns.vtk_to_numpy(self.get_polydata().GetPolys().GetData())
         assert((vtk_polys[::4] == 3).all())  # test if really triangle
-        triangles = np.vstack([vtk_polys[1::4], vtk_polys[2::4], vtk_polys[3::4]]).T
+        triangles = np.vstack(
+            [vtk_polys[1::4], vtk_polys[2::4], vtk_polys[3::4]]).T
         return triangles
 
     def get_polydata_vertices(self):
         return ns.vtk_to_numpy(self.get_polydata().GetPoints().GetData())
 
     def set_polydata_triangles(self, triangles):
-        vtk_triangles = np.hstack(np.c_[np.ones(len(triangles)).astype(np.int) * 3, triangles])
+        vtk_triangles = np.hstack(
+            np.c_[np.ones(len(triangles)).astype(np.int) * 3, triangles])
         vtk_triangles = ns.numpy_to_vtkIdTypeArray(vtk_triangles, deep=True)
         vtk_cells = vtk.vtkCellArray()
         vtk_cells.SetCells(len(triangles), vtk_triangles)
@@ -95,50 +104,52 @@ class TriMesh_Vtk(TriMesh):
 
     def set_colors(self, colors):
         # Colors are [0,255] RGB for each points
-        vtk_colors = ns.numpy_to_vtk(colors, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
+        vtk_colors = ns.numpy_to_vtk(
+            colors, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
         vtk_colors.SetNumberOfComponents(3)
         vtk_colors.SetName("RGB")
         self.get_polydata().GetPointData().SetScalars(vtk_colors)
         self.__polydata_color_is_scalars__ = False
-        
-        
+
     def set_scalars(self, scalars, colormap=None):
+        scalars = scalars.astype(float)
         vtk_scalars = ns.numpy_to_vtk(scalars, deep=True)
         vtk_scalars.SetNumberOfComponents(1)
         vtk_scalars.SetName("Scalars")
         self.get_polydata().GetPointData().SetScalars(vtk_scalars)
-        
+
         self.__polydata_color_is_scalars__ = True
         if colormap is not None:
             self.set_colormap(colormap)
         else:
-            self.set_colormap(vtk_u.generate_colormap([scalars.min(),scalars.max()]))
-        
+            self.set_colormap(vtk_u.generate_colormap(
+                scale_range=(np.min(scalars), np.max(scalars))))
+
     def get_scalars(self):
         vtk_scalars = self.get_polydata().GetPointData().GetScalars()
         if vtk_scalars is None:
             return None
         else:
             return ns.vtk_to_numpy(vtk_scalars)
-        
+
     def set_colormap(self, colormap):
         if self.__polydata_color_is_scalars__:
             self.__colormap__ = colormap
         else:
-            print("WARNING: 'set_colormap()', need to be call afterward 'set_scalars'")
-        
+            print("WARNING: call 'set_colormap()' after 'set_scalars'")
+
     def get_colormap(self):
         return self.__colormap__
-        
+
     # Updates :
     def update_normals(self):
         normals_gen = self.polydata_input(vtk.vtkPolyDataNormals())
         normals_gen.ComputePointNormalsOn()
         normals_gen.ComputeCellNormalsOn()
         normals_gen.SplittingOff()
-        #normals_gen.FlipNormalsOn()
-        #normals_gen.ConsistencyOn()
-        #normals_gen.AutoOrientNormalsOn()
+        # normals_gen.FlipNormalsOn()
+        # normals_gen.ConsistencyOn()
+        # normals_gen.AutoOrientNormalsOn()
         normals_gen.Update()
 
         # memory leak if we use :  self.polydata = normals_gen.GetOutput()
@@ -157,14 +168,14 @@ class TriMesh_Vtk(TriMesh):
         poly_mapper = self.polydata_input(vtk.vtkPolyDataMapper())
         poly_mapper.ScalarVisibilityOn()
         poly_mapper.InterpolateScalarsBeforeMappingOn()
-        poly_mapper.Update()
         poly_mapper.StaticOn()
-        
+        poly_mapper.Update()
+
         if self.__polydata_color_is_scalars__ is True:
             poly_mapper.SetLookupTable(self.get_colormap())
+            poly_mapper.SetScalarModeToUsePointData()
             poly_mapper.UseLookupTableScalarRangeOn()
-            poly_mapper.Update()
-                    
+
         return poly_mapper
 
     def get_vtk_actor(self, light=(0.1, 0.15, 0.05)):
@@ -182,23 +193,31 @@ class TriMesh_Vtk(TriMesh):
 
         return actor
 
-    def display(self, display_name="trimesh", size=(400, 400), 
-                light=(0.1, 0.15, 0.05), background=(0.0,0.0,0.0), 
-                png_magnify=1, display_colormap="Range"):
+    def display(self, display_name="trimesh", size=(1000, 800),
+                light=(0.1, 0.15, 0.05), background=(0.0, 0.0, 0.0),
+                png_magnify=1, display_colormap="Range",
+                camera_rot=[0.0, 0.0, 0.0], zoom=1.0):
         # from dipy.fvtk
         renderer = vtk.vtkRenderer()
-        renderer.AddActor(self.get_vtk_actor(light))
+        actor = self.get_vtk_actor(light)
+        renderer.AddActor(actor)
         renderer.ResetCamera()
         renderer.SetBackground(background)
-        
-        if (self.__polydata_color_is_scalars__ is True 
-            and display_colormap is not None):
+
+        camera = renderer.GetActiveCamera()
+        camera.Roll(camera_rot[0])
+        camera.Elevation(camera_rot[1])
+        camera.Azimuth(camera_rot[2])
+        camera.Zoom(zoom)
+
+        if (self.__polydata_color_is_scalars__ is True and
+                display_colormap is not None):
             scalar_bar = vtk.vtkScalarBarActor()
             scalar_bar.SetTitle(display_colormap)
             scalar_bar.SetLookupTable(self.get_colormap())
             scalar_bar.SetNumberOfLabels(7)
             renderer.AddActor(scalar_bar)
-                
+
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
         # window.SetAAFrames(6)
@@ -225,7 +244,7 @@ class TriMesh_Vtk(TriMesh):
                 writer.SetInputConnection(renderLarge.GetOutputPort())
                 writer.SetFileName('trimesh_save.png')
                 writer.Write()
-                print('Look for trimesh_save.png in your current working directory.')
+                print('Look for trimesh_save.png in your current directory.')
 
         iren.AddObserver('KeyPressEvent', key_press)
         iren.SetInteractorStyle(style)

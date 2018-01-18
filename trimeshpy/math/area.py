@@ -81,10 +81,11 @@ def edge_mix_area(triangles, vertices):
     #    else : (if current vertex angle(theta) < 90)
     #        area = (triangle area)/4
     ########################################################################
-    from trimeshpy.math.angle import edge_triangle_is_obtuse, edge_theta_is_obtuse
-    
-    vv_area = edge_area(triangles, vertices)
-    vv_voronoi_area = edge_voronoi_area(triangles, vertices)
+    from trimeshpy.math.angle import edge_triangle_is_obtuse
+    from trimeshpy.math.angle import edge_theta_is_obtuse
+
+    e_area = edge_area(triangles, vertices)
+    e_voronoi_area = edge_voronoi_area(triangles, vertices)
     tri_is_obtuse = edge_triangle_is_obtuse(triangles, vertices)
     theta_obtuse = edge_theta_is_obtuse(triangles, vertices)
 
@@ -93,11 +94,11 @@ def edge_mix_area(triangles, vertices):
     tri_is_not_obt.data = ~tri_is_not_obt.data
     theta_not_obtuse = csc_matrix.copy(theta_obtuse)
     theta_not_obtuse.data = ~theta_not_obtuse.data
-    vv_mix_area = (tri_is_not_obt.multiply(vv_voronoi_area)
-                   + tri_is_obtuse.multiply(theta_obtuse).multiply(vv_area) / 2
-                   + tri_is_obtuse.multiply(theta_not_obtuse).multiply(vv_area) / 4)
+    mix_area = (tri_is_not_obt.multiply(e_voronoi_area) +
+                tri_is_obtuse.multiply(theta_obtuse).multiply(e_area) / 2 +
+                tri_is_obtuse.multiply(theta_not_obtuse).multiply(e_area) / 4)
 
-    return vv_mix_area
+    return mix_area
 
 
 def vertices_area(triangles, vertices, normalize=False):

@@ -97,7 +97,8 @@ def edge_adjacency(triangles, vertices):
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     values = np.ones_like(vts_i, dtype=np.bool)
-    vv_map = csc_matrix((values, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
+    vv_map = csc_matrix((values, (vts_i, vts_j)),
+                        shape=(vertices.shape[0], vertices.shape[0]))
     return vv_map
 
 
@@ -107,7 +108,8 @@ def edge_sqr_length(triangles, vertices):
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     values = square_length(vertices[vts_i] - vertices[vts_j])
-    vv_map = csc_matrix((values, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]), dtype=G_DTYPE)
+    vv_map = csc_matrix((values, (vts_i, vts_j)), shape=(
+        vertices.shape[0], vertices.shape[0]), dtype=G_DTYPE)
     return vv_map
 
 
@@ -135,18 +137,20 @@ def edge_triangle_map(triangles, vertices):
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     triangles_index = np.tile(np.arange(len(triangles)), 3)
 
-    vv_t_map = csc_matrix((triangles_index, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
+    vv_t_map = csc_matrix((triangles_index, (vts_i, vts_j)),
+                          shape=(vertices.shape[0], vertices.shape[0]))
     return vv_t_map
 
 
-#    edge_opposing_vertex : n x n -> vertex_index (int) (sparse connectivity matrix)
+#    edge_opposing_vertex : n x n -> vertex_index (int) (sparse co matrix)
 #    e[i,j] = v[i],v[j] = { v[k], if v[i],v[j],v[k] triangle exist }
 def edge_opposing_vertex(triangles, vertices):
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
     vts_k = np.hstack([triangles[:, 2], triangles[:, 0], triangles[:, 1]])
 
-    vv_v_map = csc_matrix((vts_k, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
+    vv_v_map = csc_matrix((vts_k, (vts_i, vts_j)),
+                          shape=(vertices.shape[0], vertices.shape[0]))
     return vv_v_map
 
 
@@ -157,7 +161,8 @@ def triangle_vertex_map(triangles, vertices):
     vertices_index = np.hstack(triangles)
     values = np.ones_like(triangles_index, dtype=np.bool)
 
-    tv_map = csc_matrix((values, (triangles_index, vertices_index)), shape=(len(triangles), vertices.shape[0]))
+    tv_map = csc_matrix((values, (triangles_index, vertices_index)),
+                        shape=(len(triangles), vertices.shape[0]))
     return tv_map
 
 
