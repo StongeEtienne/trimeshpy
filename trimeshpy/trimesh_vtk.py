@@ -15,15 +15,16 @@ class TriMesh_Vtk(TriMesh):
 
     def __init__(self, triangles, vertices, dtype=np.float64,
                  atol=1e-8, assert_args=True):
+        
         if isinstance(triangles, basestring):
-            self.__polydata__ = vtk_u.load_polydata(triangles)
-            self.__polydata_is_up_to_date__ = True
-            self.__polydata_color_is_scalars__ = None
-            TriMesh.__init__(self, self.get_polydata_triangles(),
-                             self.get_polydata_vertices(),
-                             dtype=dtype, atol=atol, assert_args=assert_args)
+            mesh_filename = triangles
         elif isinstance(vertices, basestring):
-            self.__polydata__ = vtk_u.load_polydata(vertices)
+            mesh_filename = vertices
+        else: 
+            mesh_filename = None
+        
+        if mesh_filename is not None:
+            self.__polydata__ = vtk_u.load_polydata(mesh_filename)
             self.__polydata_is_up_to_date__ = True
             self.__polydata_color_is_scalars__ = None
             TriMesh.__init__(self, self.get_polydata_triangles(),
@@ -52,6 +53,15 @@ class TriMesh_Vtk(TriMesh):
         if update_normal:
             self.update_normals()
         return self.__polydata__
+    
+    def set_polydata(self, new_polydata):
+        self.__polydata__ = new_polydata
+        self.__polydata_is_up_to_date__ = True
+        self.__polydata_color_is_scalars__ = None
+        TriMesh.__init__(self, self.get_polydata_triangles(),
+                         self.get_polydata_vertices(),
+                         dtype=self.__dtype__, atol=self.__atol__)
+        
 
     def update_polydata(self):
         self.__polydata__ = vtk.vtkPolyData()
@@ -60,14 +70,10 @@ class TriMesh_Vtk(TriMesh):
         self.set_polydata_vertices(self.get_vertices())
 
     def get_polydata_triangles(self):
-        vtk_polys = ns.vtk_to_numpy(self.get_polydata().GetPolys().GetData())
-        assert((vtk_polys[::4] == 3).all())  # test if really triangle
-        triangles = np.vstack(
-            [vtk_polys[1::4], vtk_polys[2::4], vtk_polys[3::4]]).T
-        return triangles
+        return vtk_u.get_polydata_triangles(self.get_polydata())
 
     def get_polydata_vertices(self):
-        return ns.vtk_to_numpy(self.get_polydata().GetPoints().GetData())
+        return vtk_u.get_polydata_vertices(self.get_polydata())
 
     def set_polydata_triangles(self, triangles):
         vtk_triangles = np.hstack(

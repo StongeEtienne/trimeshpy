@@ -1,6 +1,8 @@
 # Etienne St-Onge
 
 from trimeshpy.trimesh_class import TriMesh
+import trimeshpy.math as tmath
+
 import numpy as np  # numerical python
 
 
@@ -16,31 +18,35 @@ class TriMeshFlow(TriMesh):
     def __init__(self, triangles, vertices_flow,
                  dtype=np.float64, atol=1e-8, assert_args=True):
 
-        if assert_args:
-            self._assert_init_args_(triangles, vertices_flow, dtype, atol)
-
         self.__dtype__ = dtype
         self.__atol__ = atol
-
-        # Never use private variable
-        # Always use Get and Set!
         self.set_triangles(triangles)
-        self.set_vertices_flow(vertices_flow)
+       
+        if isinstance(vertices_flow, basestring):
+            self.set_vertices_flow_from_memmap(vertices_flow)
+        else :
+            self.set_vertices_flow(vertices_flow)
+            
+        if assert_args:
+            self._assert_init_args_()
 
     # Redefinition
-    def _assert_vertices_(self, vertices):
-        assert(type(vertices).__module__ == np.__name__), \
-            ("vertices_flow should be a numpy array, not: %r" % type(vertices))
-        assert(np.issubdtype(vertices.dtype, np.floating) or
-               np.issubdtype(vertices.dtype, np.integer)), \
+    def _assert_vertices_(self):
+        assert(type(self.__vertices_flow__).__module__ == np.__name__), \
+            ("vertices_flow should be a numpy array, not: %r" % type(self.__vertices_flow__))
+        assert(np.issubdtype(self.__vertices_flow__.dtype, np.floating) or
+               np.issubdtype(self.__vertices_flow__.dtype, np.integer)), \
             ("vertices_flow should be number(float or integer), not: %r" %
-             type(vertices))
-        assert(vertices.shape[-1] == 3), \
+             type(self.__vertices_flow__))
+        assert(self.__vertices_flow__.shape[-1] == 3), \
             ("each vertex should be 3 dimensional, not: %r" %
-             vertices.shape[1])
-        assert(vertices.ndim == 2 or vertices.ndim == 3), \
+             self.__vertices_flow__.shape[1])
+        assert(self.__vertices_flow__.ndim == 2 or self.__vertices_flow__.ndim == 3), \
             ("vertices_flow array should only have 2 dimension, not: %r" %
-             vertices.ndim)
+             self.__vertices_flow__.ndim)
+            
+    def _assert_edges_(self):
+        return
 
 # Get class variable
     def get_triangles(self):

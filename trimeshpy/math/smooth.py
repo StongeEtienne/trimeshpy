@@ -202,7 +202,8 @@ def mass_stiffness_smooth(triangles, vertices, nb_iter=1,
 
 # positive mass_stiffness
 def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
-                                   diffusion_step=1.0, flow_file=None):
+                                   diffusion_step=1.0, flow_file=None,
+                                   gaussian_threshold=0.2, angle_threshold=1.0):
     vertices_csc = csc_matrix(vertices)
     curvature_normal_mtx = mean_curvature_normal_matrix(
         triangles, vertices, area_weighted=False)
@@ -221,10 +222,21 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
         if flow_file is not None:
             mem_map[i] = vertices_csc.todense()
 
+        # third try
         mass_mtx = mass_matrix(triangles, vertices_csc)
 
         pos_curv = vertices_cotan_curvature(
             triangles, vertices_csc, False) > - G_ATOL
+
+        if gaussian_threshold is not None:
+            # Gaussian threshold: maximum value PI, cube corner = PI/2 # = 0.8
+            deg_vts = np.abs(vertices_gaussian_curvature(triangles, vertices_csc, False)) > gaussian_threshold
+            pos_curv = np.logical_or(pos_curv, deg_vts)
+
+        if angle_threshold is not None:
+            # angle_threshold: PI, cube corner = PI/2 # = 1.7
+            deg_seg = edge_triangle_normal_angle(triangles, vertices_csc).max(1).toarray().squeeze() > angle_threshold
+            pos_curv = np.logical_or(pos_curv, deg_seg)
 
         possitive_diffusion_step = pos_curv * diffusion_step
 
@@ -242,7 +254,42 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
 # positive weighted mass_stiffness
 def volume_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
                                  diffusion_step=1.0, flow_file=None):
-    raise NotImplementedError()
+    vertices_csc = csc_matrix(vertices)
+    curvature_normal_mtx = mean_curvature_normal_matrix(
+        triangles, vertices, area_weighted=False)
+
+    if isinstance(diffusion_step, (int, long, float)):
+        diffusion_step = diffusion_step * np.ones(len(vertices))
+
+    if flow_file is not None:
+        mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
+                            shape=(nb_iter, vertices.shape[0], vertices.shape[1]))
+
+    for i in range(nb_iter):
+        stdout.write("\r step %d on %d done" % (i, nb_iter))
+        stdout.flush()
+        if flow_file is not None:
+            mem_map[i] = vertices_csc.toarray()
+        # get curvature_normal_matrix
+        mass_mtx = mass_matrix(triangles, vertices)
+
+        raise NotImplementedError()
+        # (D - d*L)*y = D*x = b
+        A_matrix = mass_mtx - \
+            diags(diffusion_step, 0).dot(curvature_normal_mtx)
+        b_matrix = mass_mtx.dot(csc_matrix(vertices_csc))
+        next_vertices = spsolve(A_matrix, b_matrix)
+        # test if direction is positive
+        direction = next_vertices.toarray() - vertices_csc
+        normal_dir = vertices_cotan_normal(
+            triangles, next_vertices, normalize=True)
+        dotv = normalize_vectors(direction).multiply(normal_dir)
+        vertices_csc += direction * np.maximum(0.0, -dotv)
+        # vertices_csc += direction * sigmoid(-np.arctan(dotv)*np.pi - np.pi)
+        # vertices_csc += direction * softplus(-dotv)
+
+    stdout.write("\r step %d on %d done \n" % (nb_iter, nb_iter))
+    return vertices_csc.toarray()
 
 
 def gaussian_curv_smooth(triangles, vertices, nb_iter=1,

@@ -4,6 +4,7 @@ import trimeshpy
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_vtk import TriMeshFlow_Vtk
 
+
 # Init Sphere
 s_mesh = TriMesh_Vtk(trimeshpy.data.sphere, None)
 s_vshape0 = s_mesh.get_nb_vertices()
@@ -11,45 +12,46 @@ s_vshape0 = s_mesh.get_nb_vertices()
 # Display sphere
 sphere_tmf = TriMeshFlow_Vtk(s_mesh.get_triangles(), s_mesh.get_vertices())
 sphere_tmf.display()
+NB_STEP_SPHERE = 100
 
 # Umbrella sphere
-sphere_tmf.laplacian_smooth(100, 1, l2_dist_weighted=False, area_weighted=False, backward_step=False, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.laplacian_smooth(NB_STEP_SPHERE, 1, l2_dist_weighted=False, area_weighted=False, backward_step=False, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
 # L2 weighted
 sphere_tmf.set_vertices_flow(s_mesh.get_vertices())
-sphere_tmf.laplacian_smooth(100, 1, l2_dist_weighted=True, area_weighted=False, backward_step=False, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.laplacian_smooth(NB_STEP_SPHERE, 1, l2_dist_weighted=True, area_weighted=False, backward_step=False, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
 # L2 weighted implicit step
 sphere_tmf.set_vertices_flow(s_mesh.get_vertices())
-sphere_tmf.laplacian_smooth(100, 1, l2_dist_weighted=True, area_weighted=False, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.laplacian_smooth(NB_STEP_SPHERE, 1, l2_dist_weighted=True, area_weighted=False, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
-# Umbrella area weighted implicit stp
+# Umbrella area weighted implicit step
 sphere_tmf.set_vertices_flow(s_mesh.get_vertices())
-sphere_tmf.laplacian_smooth(100, 125, l2_dist_weighted=False, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.laplacian_smooth(NB_STEP_SPHERE, 100, l2_dist_weighted=False, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
 # Cotan
 sphere_tmf.set_vertices_flow(s_mesh.get_vertices())
-sphere_tmf.curvature_normal_smooth(100, 1, area_weighted=False, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.curvature_normal_smooth(NB_STEP_SPHERE, 1, area_weighted=False, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
 # Cotan area weighted
 sphere_tmf.set_vertices_flow(s_mesh.get_vertices())
-sphere_tmf.curvature_normal_smooth(100, 20, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 100, s_vshape0)
+sphere_tmf.curvature_normal_smooth(NB_STEP_SPHERE, 20, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+sphere_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_SPHERE, s_vshape0)
 sphere_tmf.display()
 sphere_tmf.display_vertices_flow()
 
@@ -59,8 +61,10 @@ c_mesh = TriMesh_Vtk(trimeshpy.data.cube, None)
 cube_tmf = TriMeshFlow_Vtk(c_mesh.get_triangles(), c_mesh.get_vertices())
 cube_tmf.display()
 
-cube_tmf.curvature_normal_smooth(10, 1, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-cube_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 10, c_mesh.get_nb_vertices())
+# Cotan area weighted
+NB_STEP_CUBE = 10
+cube_tmf.curvature_normal_smooth(NB_STEP_CUBE, 1, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+cube_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_CUBE, c_mesh.get_nb_vertices())
 cube_tmf.display()
 cube_tmf.display_vertices_flow()
 
@@ -70,8 +74,10 @@ t_mesh = TriMesh_Vtk(trimeshpy.data.torus, None)
 torus_tmf = TriMeshFlow_Vtk(t_mesh.get_triangles(), t_mesh.get_vertices())
 torus_tmf.display()
 
-torus_tmf.curvature_normal_smooth(50, 10, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
-torus_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, 50, t_mesh.get_nb_vertices())
+# Cotan area weighted
+NB_STEP_TORUS = 50
+torus_tmf.curvature_normal_smooth(NB_STEP_TORUS, 10, area_weighted=True, backward_step=True, flow_file=trimeshpy.data.output_test_flow)
+torus_tmf.set_vertices_flow_from_memmap(trimeshpy.data.output_test_flow, NB_STEP_TORUS, t_mesh.get_nb_vertices())
 torus_tmf.display()
 torus_tmf.display_vertices_flow()
 
@@ -103,7 +109,7 @@ spot_tmf.display_vertices_flow()
 
 
 # Init Brain
-b_mesh = TriMesh_Vtk(trimeshpy.data.brain_lh_smoothed, None)
+b_mesh = TriMesh_Vtk(trimeshpy.data.brain_lh, None)
 brain_tmf = TriMeshFlow_Vtk(b_mesh.get_triangles(), b_mesh.get_vertices())
 brain_tmf.display()
 

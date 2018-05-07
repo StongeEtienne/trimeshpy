@@ -3,9 +3,8 @@
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_class import TriMeshFlow
 import trimeshpy.vtk_util as vtk_u
-import vtk
-
 import numpy as np
+import vtk
 
 
 # "TriMeshFlow_Vtk" is Based on "TriMeshFlow",

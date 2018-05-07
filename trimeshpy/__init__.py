@@ -7,10 +7,10 @@
 ###########################################################
 
 
-from trimeshpy.trimesh_class import TriMesh
-from trimeshpy.trimeshflow_class import TriMeshFlow
-from trimeshpy.trimesh_vtk import TriMesh_Vtk
-from trimeshpy.trimeshflow_vtk import TriMeshFlow_Vtk
+from .trimesh_class import TriMesh
+from .trimeshflow_class import TriMeshFlow
+from .trimesh_vtk import TriMesh_Vtk
+from .trimeshflow_vtk import TriMeshFlow_Vtk
 
 import trimeshpy.math
 

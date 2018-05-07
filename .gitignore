@@ -1,6 +1,8 @@
 *~
 *.pyc
 *.dat
+*.fib
+*.vtk
 
 .idea/
 .project

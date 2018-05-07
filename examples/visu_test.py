@@ -1,19 +1,12 @@
 # by Etienne St-Onge 
 
 import numpy as np
-from dipy.viz import fvtk
 import time
-import scipy.sparse
-from scipy.sparse import csc_matrix, diags, identity
 
 import trimeshpy
-import trimeshpy.math as tmath
-
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_vtk import TriMeshFlow_Vtk
-from trimeshpy.vtk_util import lines_to_vtk_polydata, save_polydata, generate_colormap
-
-from matplotlib import cm
+from trimeshpy.vtk_util import lines_to_vtk_polydata, save_polydata
 
 # Test files
 file_name = trimeshpy.data.brain_lh
@@ -21,52 +14,18 @@ file_name = trimeshpy.data.brain_lh
 mesh = TriMesh_Vtk(file_name, None)
 triangles = mesh.get_triangles()
 vertices = mesh.get_vertices()
-#mesh.display()
+mesh.display(display_name="Trimeshpy: Initial Mesh")
 
-"""
-from scipy.spatial import Delaunay
-
-# Triangulate parameter space to determine the triangles
-#tri = mtri.Triangulation(u, v)
-tri = Delaunay(vertices)
- 
-
-delaunay_triangles = np.vstack((tri.simplices[:,0:3], np.roll(tri.simplices,2,axis=1)[:,0:3]))
-mesh.set_triangles(tri.simplices[:,0:3]) 
-mesh.display()
-"""
-
-
-#pre-smooth
-#vertices = mesh.laplacian_smooth(2, 5.0, l2_dist_weighted=False, area_weighted=False, backward_step=True, flow_file=None)
-#mesh.set_vertices(vertices)
-#mesh.display()
-
-# test colors curvature
-test_curv = mesh.vertices_cotan_curvature(False)
-color_curv = np.zeros([len(test_curv),3])
-color_curv[:,0] = np.maximum(-test_curv,0)  / np.abs(test_curv).max()
-color_curv[:,2] = np.maximum(test_curv,0)  / np.abs(test_curv).max()
-#mesh.set_colors(color_curv)
-cmap = generate_colormap([0,90],hue_range=[0.65,0], saturation_range=[0.8,0.8], value_range=[0.8,0.8])#scale_range=[0,1], hue_range=[0,1], saturation_range=[0,1], value_range=[0])
-print cmap.GetNumberOfTableValues()
-for i in range(256):
-    v = cm.jet(i)
-    
-    cmap.SetTableValue(i, v[0],v[1],v[2], v[3])
-
-test_curv=test_curv*5.0
-mesh.set_scalars(test_curv, cmap)
-mesh.display()
-exit()
-
+# pre-smooth
+vertices = mesh.laplacian_smooth(2, 10.0, l2_dist_weighted=False, area_weighted=False, backward_step=True, flow_file=None)
+mesh.set_vertices(vertices)
+mesh.display(display_name="Trimeshpy: Smoothed Mesh")
 
 tri_mesh_flow = TriMeshFlow_Vtk(triangles, vertices)
-print tri_mesh_flow.get_nb_vertices(), tri_mesh_flow.get_nb_triangles()
 
 # Test parameters
 nb_step = 10
-diffusion_step = 0.001
+diffusion_step = 10
 saved_flow = trimeshpy.data.output_test_flow
 saved_fib = trimeshpy.data.output_test_fib
 
@@ -81,25 +40,10 @@ points = tri_mesh_flow.mass_stiffness_smooth(nb_step, diffusion_step, flow_file=
 stop = time.time()
 print (stop - start)
 
-
-#saved_flow = "hcp/t1000_01/hcp_test_rh.dat"  # None
-#nb_step = 1000
-lines = np.memmap(saved_flow, dtype=np.float64, mode='r', shape=(nb_step, vertices.shape[0], vertices.shape[1]))#[::10][:51]
-print lines.shape
+lines = np.memmap(saved_flow, dtype=np.float64, mode='r', shape=(nb_step, vertices.shape[0], vertices.shape[1]))
 tri_mesh_flow.set_vertices_flow(np.array(lines))
-tri_mesh_flow.display()
-tri_mesh_flow.display_vertices_flow()
-
-
-"""
-### Render both, mesh and flow
-mesh.set_vertices(points)
-line_to_save = np.swapaxes(lines, 0, 1)
-rend = fvtk.ren()
-fvtk.add(rend, mesh.get_vtk_actor())
-fvtk.add(rend, fvtk.line(line_to_save))
-fvtk.show(rend)
-"""
+tri_mesh_flow.display(display_name="Trimeshpy: Flow resulting surface")
+tri_mesh_flow.display_vertices_flow(display_name="Trimeshpy: Flow visualization")
 
 """
 ### save fibers in .fib normal

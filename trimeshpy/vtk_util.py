@@ -18,6 +18,23 @@ def set_input(vtk_object, current_input):
     vtk_object.Update()
     return vtk_object
 
+# Load
+def load_streamlines(file_name):
+    return get_streamlines(load_polydata(file_name))
+
+def get_streamlines(line_polydata):
+    lines_vertices = ns.vtk_to_numpy(line_polydata.GetPoints().GetData())
+    lines_idx = ns.vtk_to_numpy(line_polydata.GetLines().GetData())
+
+    lines = []
+    current_idx = 0
+    while current_idx < len(lines_idx):
+        line_len = lines_idx[current_idx]
+        next_idx = current_idx + line_len + 1
+        line_range = lines_idx[current_idx + 1: next_idx]
+        lines += [lines_vertices[line_range]]
+        current_idx = next_idx
+    return lines
 
 def load_polydata(file_name):
     # get file extension (type)
@@ -50,12 +67,11 @@ def load_polydata(file_name):
     print(file_name + " Mesh " + file_extension + " Loaded")
     return reader.GetOutput()
 
-
+# Save
 def save_polydata(polydata, file_name, binary=False, color_array_name=None):
     # get file extension (type)
     file_extension = file_name.split(".")[-1].lower()
 
-    # todo better generic load
     if file_extension == "vtk":
         writer = vtk.vtkPolyDataWriter()
     elif file_extension == "vtp":
@@ -81,31 +97,6 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None):
         writer.SetFileTypeToBinary()
     writer.Update()
     writer.Write()
-
-
-def load_streamlines_poyldata(file_name):
-    # get file extension (type)
-    reader = vtk.vtkPolyDataReader()
-    reader.SetFileName(file_name)
-    reader.Update()
-    line_data = reader.GetOutput()
-    return line_data
-
-
-def get_streamlines(line_polydata):
-    lines_vertices = ns.vtk_to_numpy(line_polydata.GetPoints().GetData())
-    lines_idx = ns.vtk_to_numpy(line_polydata.GetLines().GetData())
-
-    lines = []
-    current_idx = 0
-    while current_idx < len(lines_idx):
-        line_len = lines_idx[current_idx]
-        next_idx = current_idx + line_len + 1
-        line_range = lines_idx[current_idx + 1: next_idx]
-        lines += [lines_vertices[line_range]]
-        current_idx = next_idx
-    return lines
-
 
 def lines_to_vtk_polydata(lines, colors="RGB", dtype=None):
     # Get the 3d points_array
@@ -202,6 +193,14 @@ def numpy_to_vtk_points(points):
     vtk_points.SetData(ns.numpy_to_vtk(np.asarray(points), deep=True))
     return vtk_points
 
+
+def get_polydata_triangles(polydata):
+    vtk_polys = ns.vtk_to_numpy(polydata.GetPolys().GetData())
+    assert((vtk_polys[::4] == 3).all())  # test if really triangle
+    return np.vstack([vtk_polys[1::4], vtk_polys[2::4], vtk_polys[3::4]]).T
+
+def get_polydata_vertices(polydata):
+    return ns.vtk_to_numpy(polydata.GetPoints().GetData())
 
 def map_coordinates_3d_4d(input_array, indices):
     """ Evaluate the input_array data at the given indices
