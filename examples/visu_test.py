@@ -45,10 +45,8 @@ tri_mesh_flow.set_vertices_flow(np.array(lines))
 tri_mesh_flow.display(display_name="Trimeshpy: Flow resulting surface")
 tri_mesh_flow.display_vertices_flow(display_name="Trimeshpy: Flow visualization")
 
-"""
 ### save fibers in .fib normal
-#line_to_save = streamline.compress_streamlines(np.swapaxes(lines, 0, 1))
-line_to_save = np.swapaxes(lines, 0, 1)
-lines_polydata = lines_to_vtk_polydata(line_to_save, None, np.float32)
-save_polydata(lines_polydata, saved_fib, True)
-"""
+#line_to_save = np.swapaxes(lines, 0, 1)
+#lines_polydata = lines_to_vtk_polydata(line_to_save, None)
+#save_polydata(lines_polydata, saved_fib, True)
+

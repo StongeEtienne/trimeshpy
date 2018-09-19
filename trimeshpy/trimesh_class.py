@@ -99,9 +99,6 @@ class TriMesh(object):
              (self.__atol__, np.finfo(self.__dtype__).eps))
 
     # Get class variable
-    def get_triangles(self):
-        return self.__triangles__
-
     def get_nb_triangles(self):
         return self.__nb_triangles__
 
@@ -110,6 +107,9 @@ class TriMesh(object):
 
     def get_vertices(self):
         return self.__vertices__
+
+    def get_triangles(self):
+        return self.__triangles__
 
     def get_atol(self):
         return self.__atol__

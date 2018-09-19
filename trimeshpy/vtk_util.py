@@ -1,8 +1,31 @@
-import vtk
-import vtk.util.numpy_support as ns
+# Etienne St-Onge
+from __future__ import division
+import importlib
 import numpy as np
 from scipy.ndimage import map_coordinates
 
+# Import vtk functions
+def import_vtk():
+    try:
+        vtk = importlib.import_module('vtk')
+    except ImportError:
+        print("Unable to import VTK")
+        vtk = None
+        
+    return vtk
+
+def import_vtk_numpy_support():
+    try:
+        ns = importlib.import_module('vtk.util.numpy_support')
+    except ImportError:
+        print("Unable to import VTK numpy support")
+        ns = None
+        
+    return ns
+
+# Find a better way to self use
+vtk = import_vtk()
+ns = import_vtk_numpy_support()
 
 # Utility functions
 def set_input(vtk_object, current_input):
@@ -18,9 +41,11 @@ def set_input(vtk_object, current_input):
     vtk_object.Update()
     return vtk_object
 
+
 # Load
 def load_streamlines(file_name):
     return get_streamlines(load_polydata(file_name))
+
 
 def get_streamlines(line_polydata):
     lines_vertices = ns.vtk_to_numpy(line_polydata.GetPoints().GetData())
@@ -36,11 +61,11 @@ def get_streamlines(line_polydata):
         current_idx = next_idx
     return lines
 
+
 def load_polydata(file_name):
     # get file extension (type)
     file_extension = file_name.split(".")[-1].lower()
 
-    # todo better generic load
     if file_extension == "vtk":
         reader = vtk.vtkPolyDataReader()
     elif file_extension == "vtp":
@@ -54,18 +79,19 @@ def load_polydata(file_name):
     elif file_extension == "xml":
         reader = vtk.vtkXMLPolyDataReader()
     elif file_extension == "obj":
+        # special case, since there is two obj format
         reader = vtk.vtkOBJReader()
-        # try:  # try to read as a normal obj
-        #    reader = vtk.vtkOBJReader()
-        # except:  # than try load a MNI obj format
-        #    reader = vtk.vtkMNIObjectReader()
+        reader.SetFileName(file_name)
+        reader.Update()
+        if reader.GetOutput().GetNumberOfCells() == 0:
+            reader = vtk.vtkMNIObjectReader()
     else:
         raise "polydata " + file_extension + " is not suported"
 
     reader.SetFileName(file_name)
     reader.Update()
-    print(file_name + " Mesh " + file_extension + " Loaded")
     return reader.GetOutput()
+
 
 # Save
 def save_polydata(polydata, file_name, binary=False, color_array_name=None):
@@ -85,8 +111,8 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None):
     elif file_extension == "xml":
         writer = vtk.vtkXMLPolyDataWriter()
     elif file_extension == "obj":
+        # writer = set_input(vtk.vtkMNIObjectWriter(), polydata)
         raise "mni obj or Wavefront obj ?"
-    #    writer = set_input(vtk.vtkMNIObjectWriter(), polydata)
 
     writer.SetFileName(file_name)
     writer = set_input(writer, polydata)
@@ -98,21 +124,21 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None):
     writer.Update()
     writer.Write()
 
-def lines_to_vtk_polydata(lines, colors="RGB", dtype=None):
+
+def lines_to_vtk_polydata(lines, colors="RGB"):
     # Get the 3d points_array
-    points_array = np.vstack(lines)
+    points_array = np.vstack(lines).astype(np.float32)
 
     nb_lines = len(lines)
     nb_points = len(points_array)
-
     lines_range = range(nb_lines)
 
     # Get lines_array in vtk input format
     # todo put from array
     lines_array = []
-    points_per_line = np.zeros([nb_lines], np.int64)
+    points_per_line = np.zeros([nb_lines], dtype=np.int32)
     current_position = 0
-    for i in lines_range:
+    for i in xrange(nb_lines):
         current_len = len(lines[i])
         points_per_line[i] = current_len
 
@@ -121,18 +147,14 @@ def lines_to_vtk_polydata(lines, colors="RGB", dtype=None):
         lines_array += range(current_position, end_position)
         current_position = end_position
 
-    if dtype is None:
-        lines_array = np.array(lines_array)
-    else:
-        lines_array = np.array(lines_array)
-
     # Set Points to vtk array format
-    vtk_points = numpy_to_vtk_points(points_array.astype(dtype))
+    vtk_points = numpy_to_vtk_points(points_array)
+    lines_array = ns.numpy_to_vtk(lines_array, array_type=vtk.VTK_INT)
 
     # Set Lines to vtk array format
     vtk_lines = vtk.vtkCellArray()
-    vtk_lines.GetData().DeepCopy(ns.numpy_to_vtk(lines_array))
-    vtk_lines.SetNumberOfCells(len(lines))
+    vtk_lines.SetNumberOfCells(nb_lines)
+    vtk_lines.GetData().DeepCopy(lines_array)
 
     # colors test, todo improve
     if colors is not None:
@@ -190,7 +212,7 @@ def numpy_to_vtk_colors(colors):
 
 def numpy_to_vtk_points(points):
     vtk_points = vtk.vtkPoints()
-    vtk_points.SetData(ns.numpy_to_vtk(np.asarray(points), deep=True))
+    vtk_points.SetData(ns.numpy_to_vtk(np.asarray(points), deep=True, array_type=vtk.VTK_FLOAT))
     return vtk_points
 
 
@@ -199,8 +221,10 @@ def get_polydata_triangles(polydata):
     assert((vtk_polys[::4] == 3).all())  # test if really triangle
     return np.vstack([vtk_polys[1::4], vtk_polys[2::4], vtk_polys[3::4]]).T
 
+
 def get_polydata_vertices(polydata):
     return ns.vtk_to_numpy(polydata.GetPoints().GetData())
+
 
 def map_coordinates_3d_4d(input_array, indices):
     """ Evaluate the input_array data at the given indices
@@ -234,7 +258,8 @@ def map_coordinates_3d_4d(input_array, indices):
 
 
 def generate_colormap(scale_range=(0.0, 1.0), hue_range=(0.8, 0.0),
-                      saturation_range=(1.0, 1.0), value_range=(0.8, 0.8)):
+                      saturation_range=(1.0, 1.0), value_range=(0.8, 0.8),
+                      nan_color=(0.2, 0.2, 0.2, 1.0)):
     """ Generate colormap's lookup table
 
     Parameters
@@ -260,5 +285,16 @@ def generate_colormap(scale_range=(0.0, 1.0), hue_range=(0.8, 0.0),
     lookup_table.SetHueRange(hue_range)
     lookup_table.SetSaturationRange(saturation_range)
     lookup_table.SetValueRange(value_range)
+    lookup_table.SetNanColor(nan_color)
     lookup_table.Build()
     return lookup_table
+
+
+# Streamlines generic processing
+def streamlines_to_endpoints(streamlines):
+    endpoints = np.zeros((2, len(streamlines), 3))
+    for i, streamline in enumerate(streamlines):
+        endpoints[0, i] = streamline[0]
+        endpoints[1, i] = streamline[-1]
+    return endpoints
+

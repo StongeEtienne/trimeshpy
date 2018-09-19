@@ -1,5 +1,6 @@
 # Etienne St-Onge
 
+from __future__ import division
 import numpy as np
 from scipy.sparse import diags
 from scipy.sparse.linalg import spsolve
@@ -13,7 +14,7 @@ from trimeshpy.math.mesh_map import edge_length, edge_adjacency
 from trimeshpy.math.matrix import (laplacian, mass_matrix,
                                    mean_curvature_normal_matrix)
 from trimeshpy.math.normal import vertices_normal, vertices_cotan_normal
-from trimeshpy.math.util import dot, euler_step, normalize_vectors
+from trimeshpy.math.util import dot, euler_step, normalize_vectors, is_numeric
 
 from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
 from scipy.sparse.csc import csc_matrix
@@ -32,8 +33,8 @@ def laplacian_smooth(triangles, vertices, nb_iter=1, diffusion_step=1.0,
 
     vertices_csc = csc_matrix(vertices)
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     for i in range(nb_iter):
         stdout.write("\r step %d on %d done" % (i, nb_iter))
@@ -80,8 +81,8 @@ def curvature_normal_smooth(triangles, vertices, nb_iter=1,
 
     vertices_csc = csc_matrix(vertices)
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     for i in range(nb_iter):
         stdout.write("\r step %d on %d done" % (i, nb_iter))
@@ -110,8 +111,8 @@ def positive_curvature_normal_smooth(triangles, vertices, nb_iter=1,
         mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
                             shape=(nb_iter, vertices.shape[0], vertices.shape[1]))
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     curvature_normal_mtx = mean_curvature_normal_matrix(
         triangles, vertices, area_weighted=area_weighted)
@@ -138,8 +139,9 @@ def positive_curvature_normal_smooth(triangles, vertices, nb_iter=1,
 def volume_curvature_normal_smooth(triangles, vertices, nb_iter=1,
                                    diffusion_step=1.0, area_weighted=False,
                                    backward_step=False, flow_file=None):
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     if flow_file is not None:
         mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
@@ -174,8 +176,8 @@ def mass_stiffness_smooth(triangles, vertices, nb_iter=1,
         triangles, vertices_csc, area_weighted=False)
     # mass_mtx = mass_matrix(triangles, vertices_csc).astype(np.float)
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     if flow_file is not None:
         mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
@@ -209,8 +211,8 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
         triangles, vertices, area_weighted=False)
     # mass_mtx = mass_matrix(triangles, vertices_csc)
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     if flow_file is not None:
         mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
@@ -222,11 +224,9 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
         if flow_file is not None:
             mem_map[i] = vertices_csc.todense()
 
-        # third try
         mass_mtx = mass_matrix(triangles, vertices_csc)
 
-        pos_curv = vertices_cotan_curvature(
-            triangles, vertices_csc, False) > - G_ATOL
+        pos_curv = vertices_cotan_curvature(triangles, vertices_csc, False) > - G_ATOL
 
         if gaussian_threshold is not None:
             # Gaussian threshold: maximum value PI, cube corner = PI/2 # = 0.8
@@ -241,8 +241,8 @@ def positive_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
         possitive_diffusion_step = pos_curv * diffusion_step
 
         # (D - d*L)*y = D*x = b
-        A_matrix = mass_mtx - \
-            (diags(possitive_diffusion_step, 0).dot(curvature_normal_mtx))
+        A_matrix = (mass_mtx - 
+            diags(possitive_diffusion_step, 0).dot(curvature_normal_mtx))
 
         b_matrix = mass_mtx.dot(vertices_csc)
         vertices_csc = spsolve(A_matrix, b_matrix)
@@ -258,8 +258,8 @@ def volume_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
     curvature_normal_mtx = mean_curvature_normal_matrix(
         triangles, vertices, area_weighted=False)
 
-    if isinstance(diffusion_step, (int, long, float)):
-        diffusion_step = diffusion_step * np.ones(len(vertices))
+    if is_numeric(diffusion_step):
+        diffusion_step = diffusion_step * np.ones(len(vertices), dtype=G_DTYPE)
 
     if flow_file is not None:
         mem_map = np.memmap(flow_file, dtype=G_DTYPE, mode='w+',
@@ -275,8 +275,8 @@ def volume_mass_stiffness_smooth(triangles, vertices, nb_iter=1,
 
         raise NotImplementedError()
         # (D - d*L)*y = D*x = b
-        A_matrix = mass_mtx - \
-            diags(diffusion_step, 0).dot(curvature_normal_mtx)
+        A_matrix = (mass_mtx - 
+            diags(diffusion_step, 0).dot(curvature_normal_mtx))
         b_matrix = mass_mtx.dot(csc_matrix(vertices_csc))
         next_vertices = spsolve(A_matrix, b_matrix)
         # test if direction is positive

@@ -4,7 +4,8 @@ from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_class import TriMeshFlow
 import trimeshpy.vtk_util as vtk_u
 import numpy as np
-import vtk
+
+vtk = vtk_u.import_vtk()
 
 
 # "TriMeshFlow_Vtk" is Based on "TriMeshFlow",

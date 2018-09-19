@@ -1,6 +1,8 @@
 # Etienne St-Onge
 
+from __future__ import division
 import numpy as np
+import sys
 import scipy
 
 from scipy.sparse import csc_matrix, diags, identity
@@ -65,3 +67,17 @@ def sigmoid(values):
 
 def softplus(values):
     return np.log(1.0 + np.exp(values))
+
+
+# python 2-3 support
+def get_integer_types():
+    if sys.version_info < (3,):
+        return (int, long,)
+    else:
+        return (int,)
+
+def get_numeric_types():
+    return get_integer_types() + (float,)
+
+def is_numeric(value):
+    return isinstance(value,  get_numeric_types())

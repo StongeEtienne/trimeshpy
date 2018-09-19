@@ -4,6 +4,7 @@ from trimeshpy.trimesh_class import TriMesh
 import trimeshpy.math as tmath
 
 import numpy as np  # numerical python
+from six import string_types
 
 
 # Flow triangles mesh
@@ -21,12 +22,12 @@ class TriMeshFlow(TriMesh):
         self.__dtype__ = dtype
         self.__atol__ = atol
         self.set_triangles(triangles)
-       
-        if isinstance(vertices_flow, basestring):
+
+        if isinstance(vertices_flow, string_types):
             self.set_vertices_flow_from_memmap(vertices_flow)
         else :
             self.set_vertices_flow(vertices_flow)
-            
+
         if assert_args:
             self._assert_init_args_()
 
@@ -44,7 +45,7 @@ class TriMeshFlow(TriMesh):
         assert(self.__vertices_flow__.ndim == 2 or self.__vertices_flow__.ndim == 3), \
             ("vertices_flow array should only have 2 dimension, not: %r" %
              self.__vertices_flow__.ndim)
-            
+
     def _assert_edges_(self):
         return
 
