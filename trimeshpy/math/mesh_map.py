@@ -1,7 +1,9 @@
 # Etienne St-Onge
 
 from __future__ import division
+
 import numpy as np
+
 from scipy.sparse import csc_matrix
 
 from trimeshpy.math.util import square_length
@@ -169,4 +171,4 @@ def triangle_vertex_map(triangles, vertices):
 
 def vertices_degree(triangles, vertices):
     tv_matrix = triangle_vertex_map(triangles, vertices)
-    return np.squeeze(np.array(tv_matrix.sum(0)))
+    return np.squeeze(np.asarray(tv_matrix.sum(0)))

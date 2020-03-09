@@ -1,31 +1,41 @@
 # Etienne St-Onge
+
 from __future__ import division
+
+import h5py
 import importlib
+import logging
+
 import numpy as np
 from scipy.ndimage import map_coordinates
+from nibabel.affines import apply_affine
+
 
 # Import vtk functions
 def import_vtk():
     try:
-        vtk = importlib.import_module('vtk')
+        vtk_lib = importlib.import_module('vtk')
     except ImportError:
-        print("Unable to import VTK")
-        vtk = None
-        
-    return vtk
+        logging.warning("Unable to import VTK")
+        vtk_lib = None
+
+    return vtk_lib
+
 
 def import_vtk_numpy_support():
     try:
-        ns = importlib.import_module('vtk.util.numpy_support')
+        ns_lib = importlib.import_module('vtk.util.numpy_support')
     except ImportError:
-        print("Unable to import VTK numpy support")
-        ns = None
-        
-    return ns
+        logging.warning("Unable to import VTK numpy support")
+        ns_lib = None
+
+    return ns_lib
+
 
 # Find a better way to self use
 vtk = import_vtk()
 ns = import_vtk_numpy_support()
+
 
 # Utility functions
 def set_input(vtk_object, current_input):
@@ -44,7 +54,14 @@ def set_input(vtk_object, current_input):
 
 # Load
 def load_streamlines(file_name):
-    return get_streamlines(load_polydata(file_name))
+    file_extension = file_name.split(".")[-1].lower()
+    if file_extension == "hdf5":
+        vertices_flow = load_hdf5_vertices(file_name)
+        nb_lines = vertices_flow.shape[1]
+        lines = [vertices_flow[:, i] for i in range(nb_lines)]
+        return lines
+    else:
+        return get_streamlines(load_polydata(file_name))
 
 
 def get_streamlines(line_polydata):
@@ -60,6 +77,16 @@ def get_streamlines(line_polydata):
         lines += [lines_vertices[line_range]]
         current_idx = next_idx
     return lines
+
+
+def load_hdf5_vertices(file_name):
+    f = h5py.File(file_name, mode='r')
+    return f["vertices"]
+
+
+def load_hdf5_triangles(file_name):
+    f = h5py.File(file_name, mode='r')
+    return f["triangles"]
 
 
 def load_polydata(file_name):
@@ -86,7 +113,7 @@ def load_polydata(file_name):
         if reader.GetOutput().GetNumberOfCells() == 0:
             reader = vtk.vtkMNIObjectReader()
     else:
-        raise "polydata " + file_extension + " is not suported"
+        raise IOError("." + file_extension + " is not supported by TriMeshPy")
 
     reader.SetFileName(file_name)
     reader.Update()
@@ -111,8 +138,13 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None):
     elif file_extension == "xml":
         writer = vtk.vtkXMLPolyDataWriter()
     elif file_extension == "obj":
-        # writer = set_input(vtk.vtkMNIObjectWriter(), polydata)
-        raise "mni obj or Wavefront obj ?"
+        find_keyword = file_name.lower().split(".")
+        if "mni" in find_keyword or "mnc" in find_keyword:
+            writer = vtk.vtkMNIObjectWriter()
+        else:
+            raise IOError("mni obj or Wavefront obj (require a scene)")
+    else:
+        raise IOError("." + file_extension + " is not supported by TriMeshPy")
 
     writer.SetFileName(file_name)
     writer = set_input(writer, polydata)
@@ -138,7 +170,7 @@ def lines_to_vtk_polydata(lines, colors="RGB"):
     lines_array = []
     points_per_line = np.zeros([nb_lines], dtype=np.int32)
     current_position = 0
-    for i in xrange(nb_lines):
+    for i in range(nb_lines):
         current_len = len(lines[i])
         points_per_line[i] = current_len
 
@@ -290,6 +322,30 @@ def generate_colormap(scale_range=(0.0, 1.0), hue_range=(0.8, 0.0),
     return lookup_table
 
 
+# transformation
+def vtk_to_vox(vts, nibabel_img):
+    inv_affine = np.linalg.inv(nibabel_img.get_affine())
+    flip = np.diag([-1, -1, 1, 1])
+    vts = apply_affine(np.dot(inv_affine, flip), vts)
+    return vts
+
+
+def vtk_to_voxmm(vts, nibabel_img):
+    scale = np.array(nibabel_img.get_header().get_zooms())
+    return vtk_to_vox(vts, nibabel_img) * scale
+
+
+def vox_to_vtk(vts, nibabel_img):
+    flip = np.diag([-1., -1., 1., 1.])
+    vts = apply_affine(np.dot(flip, nibabel_img.get_affine()), vts)
+    return vts
+
+
+def voxmm_to_vtk(vts, nibabel_img):
+    scale = np.array(nibabel_img.get_header().get_zooms(), dtype=np.float)
+    return vox_to_vtk(vts / scale, nibabel_img)
+
+
 # Streamlines generic processing
 def streamlines_to_endpoints(streamlines):
     endpoints = np.zeros((2, len(streamlines), 3))
@@ -297,4 +353,3 @@ def streamlines_to_endpoints(streamlines):
         endpoints[0, i] = streamline[0]
         endpoints[1, i] = streamline[-1]
     return endpoints
-

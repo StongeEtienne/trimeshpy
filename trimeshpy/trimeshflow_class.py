@@ -1,10 +1,13 @@
 # Etienne St-Onge
 
-from trimeshpy.trimesh_class import TriMesh
-import trimeshpy.math as tmath
-
-import numpy as np  # numerical python
+import h5py
 from six import string_types
+import logging
+
+import numpy as np
+
+from trimeshpy.trimesh_class import TriMesh
+import trimeshpy.vtk_util as vtk_u
 
 
 # Flow triangles mesh
@@ -24,8 +27,8 @@ class TriMeshFlow(TriMesh):
         self.set_triangles(triangles)
 
         if isinstance(vertices_flow, string_types):
-            self.set_vertices_flow_from_memmap(vertices_flow)
-        else :
+            self.set_vertices_flow_from_hdf5(vertices_flow)
+        else:
             self.set_vertices_flow(vertices_flow)
 
         if assert_args:
@@ -33,18 +36,15 @@ class TriMeshFlow(TriMesh):
 
     # Redefinition
     def _assert_vertices_(self):
-        assert(type(self.__vertices_flow__).__module__ == np.__name__), \
-            ("vertices_flow should be a numpy array, not: %r" % type(self.__vertices_flow__))
-        assert(np.issubdtype(self.__vertices_flow__.dtype, np.floating) or
-               np.issubdtype(self.__vertices_flow__.dtype, np.integer)), \
-            ("vertices_flow should be number(float or integer), not: %r" %
-             type(self.__vertices_flow__))
-        assert(self.__vertices_flow__.shape[-1] == 3), \
-            ("each vertex should be 3 dimensional, not: %r" %
-             self.__vertices_flow__.shape[1])
-        assert(self.__vertices_flow__.ndim == 2 or self.__vertices_flow__.ndim == 3), \
-            ("vertices_flow array should only have 2 dimension, not: %r" %
-             self.__vertices_flow__.ndim)
+        if type(self.__vertices_flow__).__module__ != np.__name__:
+            logging.error("vertices_flow should be a numpy array, not: %r" % type(self.__vertices_flow__))
+        if not (np.issubdtype(self.__vertices_flow__.dtype, np.floating)
+                or np.issubdtype(self.__vertices_flow__.dtype, np.integer)):
+            logging.error("vertices_flow should be number(float or integer), not: %r" % type(self.__vertices_flow__))
+        if self.__vertices_flow__.shape[-1] != 3:
+            logging.error("each vertex should be 3 dimensional, not: %r" % self.__vertices_flow__.shape[1])
+        if self.__vertices_flow__.ndim != 2 and self.__vertices_flow__.ndim != 3:
+            logging.error("vertices_flow array should only have 2 or 3 dimensions, not: %r" % self.__vertices_flow__.ndim)
 
     def _assert_edges_(self):
         return
@@ -104,6 +104,11 @@ class TriMeshFlow(TriMesh):
             vertices_flow_memmap, dtype=self.get_dtype(), mode='r',
             shape=(flow_length, nb_vertices, 3)))
 
+    def set_vertices_flow_from_hdf5(self, vertices_flow_hdf5):
+        self.__vertices_flow__ = vtk_u.load_hdf5_vertices(vertices_flow_hdf5)
+        self.__flow_length__ = self.__vertices_flow__.shape[0]
+        self.__nb_vertices__ = self.__vertices_flow__.shape[1]
+
     def set_vertices(self, vertices_flow):
-        # use set_vertices_flow
+        logging.error("For TriMeshFlow instances use 'set_vertices_flow()' instead ")
         raise NotImplementedError()

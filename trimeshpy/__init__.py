@@ -6,6 +6,7 @@
 #         by Etienne St-Onge
 ###########################################################
 
+import logging
 
 from .trimesh_class import TriMesh
 from .trimeshflow_class import TriMeshFlow
@@ -20,5 +21,5 @@ __all__ = ["trimesh_class", "trimeshflow_class",
 
 try:
     import trimeshpy_data as data
-except:
-    print("cannot load 'trimeshpy_data'")
+except ImportError:
+    logging.warning("cannot load 'trimeshpy_data'")

@@ -1,13 +1,16 @@
 # Etienne St-Onge
 
 from __future__ import division
+
 import numpy as np
 import scipy
-
 from scipy.sparse import csc_matrix
 
-from trimeshpy.math.mesh_map import edge_triangle_map, edge_sqr_length, triangle_vertex_map, vertices_degree
-from trimeshpy.math.util import length
+from trimeshpy.math.angle import (edge_trigo_angle, edge_angle_is_obtuse,
+                                  edge_triangle_is_obtuse, edge_cotan_map)
+from trimeshpy.math.mesh_map import (edge_triangle_map, edge_sqr_length,
+                                     triangle_vertex_map, vertices_degree)
+from trimeshpy.math.util import dot_area, dot_cos_angle
 
 
 # Area Functions
@@ -32,7 +35,7 @@ from trimeshpy.math.util import length
 #                      if normalize=False or normalize=True
 #
 # Voronoi Area :
-#    todo add info
+#    Local Voronoi area of the triangle
 #
 # Mix Area :
 #    an in between mix of Basic and Voronoi Area
@@ -43,9 +46,9 @@ def triangles_area(triangles, vertices):
 
     e1 = vertices[triangles[:, 1]] - vertices[triangles[:, 0]]
     e2 = vertices[triangles[:, 2]] - vertices[triangles[:, 0]]
-    normal = scipy.cross(e1, e2)
-    tri_area = 0.5 * length(normal)
-    return tri_area
+    tri_dot_area = dot_area(e1, e2)
+    # tri_area = 0.5 * length(scipy.cross(e1, e2))
+    return tri_dot_area
 
 
 def edge_area(triangles, vertices):
@@ -56,20 +59,18 @@ def edge_area(triangles, vertices):
 
 
 def edge_voronoi_area(triangles, vertices):
-    from trimeshpy.math.angle import edge_alpha_angle, edge_gamma_angle
     vv_l2_sqr_map = edge_sqr_length(triangles, vertices)
 
-    alpha = edge_alpha_angle(triangles, vertices)
-    gamma = edge_gamma_angle(triangles, vertices)
-
-    cot_alpha = scipy.tan(alpha)
-    cot_alpha.data **= -1
-    inv_sin2_alpha = scipy.sin(alpha)
-    inv_sin2_alpha.data **= -2
-
-    w_angle = scipy.sin(2.0 * gamma).multiply(inv_sin2_alpha) / 2.0
-    vv_area = vv_l2_sqr_map.multiply(cot_alpha + w_angle) / 8.0
-    return vv_area
+    # fast method
+    cos_alpha = edge_trigo_angle(triangles, vertices, rot=1,
+                                 angle_function=dot_cos_angle).data
+    cos_gamma = edge_trigo_angle(triangles, vertices, rot=2,
+                                 angle_function=dot_cos_angle).data
+    sin2_alpha = 1.0 - cos_alpha*cos_alpha
+    sin_alpha = np.sqrt(sin2_alpha)
+    sin_gamma = np.sqrt(1.0-cos_gamma*cos_gamma)
+    vv_l2_sqr_map.data *= (cos_alpha/sin_alpha + cos_gamma*sin_gamma/sin2_alpha)/8.0
+    return vv_l2_sqr_map
 
 
 def edge_mix_area(triangles, vertices):
@@ -82,24 +83,18 @@ def edge_mix_area(triangles, vertices):
     #    else : (if current vertex angle(theta) < 90)
     #        area = (triangle area)/4
     ########################################################################
-    from trimeshpy.math.angle import edge_triangle_is_obtuse
-    from trimeshpy.math.angle import edge_theta_is_obtuse
 
     e_area = edge_area(triangles, vertices)
     e_voronoi_area = edge_voronoi_area(triangles, vertices)
     tri_is_obtuse = edge_triangle_is_obtuse(triangles, vertices)
-    theta_obtuse = edge_theta_is_obtuse(triangles, vertices)
+    theta_obtuse = edge_angle_is_obtuse(triangles, vertices, rot=0)
 
-    # todo : optimize
-    tri_is_not_obt = csc_matrix.copy(tri_is_obtuse)
-    tri_is_not_obt.data = ~tri_is_not_obt.data
-    theta_not_obtuse = csc_matrix.copy(theta_obtuse)
-    theta_not_obtuse.data = ~theta_not_obtuse.data
-    mix_area = (tri_is_not_obt.multiply(e_voronoi_area) +
-                tri_is_obtuse.multiply(theta_obtuse).multiply(e_area) / 2 +
-                tri_is_obtuse.multiply(theta_not_obtuse).multiply(e_area) / 4)
+    t_not_obt = ~tri_is_obtuse.data
+    e_area.data[t_not_obt] = e_voronoi_area.data[t_not_obt]
+    e_area.data[np.logical_and(tri_is_obtuse.data, theta_obtuse.data)] /= 2.0
+    e_area.data[np.logical_and(tri_is_obtuse.data, ~theta_obtuse.data)] /= 4.0
 
-    return mix_area
+    return e_area
 
 
 def vertices_area(triangles, vertices, normalize=False):
@@ -114,12 +109,11 @@ def vertices_area(triangles, vertices, normalize=False):
 
 
 def vertices_voronoi_area(triangles, vertices):
-    from trimeshpy.math.angle import cotan_alpha_beta_angle
-    ctn_ab_angles = cotan_alpha_beta_angle(triangles, vertices)
+    ctn_ab_angles = edge_cotan_map(triangles, vertices)
     vv_l2_sqr_map = edge_sqr_length(triangles, vertices)
     vts_area = ctn_ab_angles.multiply(vv_l2_sqr_map).sum(1) / 8.0
-    return np.squeeze(np.array(vts_area))
+    return np.squeeze(np.asarray(vts_area))
 
 
 def vertices_mix_area(triangles, vertices):
-    return np.squeeze(np.array(edge_mix_area(triangles, vertices).sum(1)))
+    return np.squeeze(np.asarray(edge_mix_area(triangles, vertices).sum(1)))

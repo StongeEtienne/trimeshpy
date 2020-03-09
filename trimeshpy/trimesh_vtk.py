@@ -1,13 +1,17 @@
 # Etienne St-Onge
 
+import logging
+from six import string_types
+
+import numpy as np
+
 from trimeshpy.trimesh_class import TriMesh
 import trimeshpy.vtk_util as vtk_u
-    
-import numpy as np
-from six import string_types
+
 
 vtk = vtk_u.import_vtk()
 ns = vtk_u.import_vtk_numpy_support()
+
 
 # TODO load color info
 class TriMesh_Vtk(TriMesh):
@@ -112,7 +116,7 @@ class TriMesh_Vtk(TriMesh):
         # Colors are [0,255] RGB for each points
         vtk_colors = ns.numpy_to_vtk(
             colors, deep=True, array_type=vtk.VTK_UNSIGNED_CHAR)
-        vtk_colors.SetNumberOfComponents(3)
+        vtk_colors.SetNumberOfComponents(colors.shape[1])
         vtk_colors.SetName("RGB")
         self.get_polydata().GetPointData().SetScalars(vtk_colors)
         self.__polydata_color_is_scalars__ = False
@@ -129,7 +133,7 @@ class TriMesh_Vtk(TriMesh):
             self.set_colormap(colormap)
         else:
             self.set_colormap(vtk_u.generate_colormap(
-                scale_range=(np.min(scalars), np.max(scalars))))
+                scale_range=(np.nanmin(scalars), np.nanmax(scalars))))
 
     def get_scalars(self):
         vtk_scalars = self.get_polydata().GetPointData().GetScalars()
@@ -142,7 +146,7 @@ class TriMesh_Vtk(TriMesh):
         if self.__polydata_color_is_scalars__:
             self.__colormap__ = colormap
         else:
-            print("WARNING: call 'set_colormap()' after 'set_scalars'")
+            logging.warning("WARNING: call 'set_colormap()' after 'set_scalars'")
 
     def get_colormap(self):
         return self.__colormap__
@@ -238,7 +242,8 @@ class TriMesh_Vtk(TriMesh):
         def key_press(obj, event):
             key = obj.GetKeySym()
             if key == 's' or key == 'S':
-                print('Saving image...')
+                logging.info('Saving image...')
+
                 renderLarge = vtk.vtkRenderLargeImage()
                 if vtk.VTK_MAJOR_VERSION <= 5:
                     renderLarge.SetInput(renderer)
@@ -250,7 +255,8 @@ class TriMesh_Vtk(TriMesh):
                 writer.SetInputConnection(renderLarge.GetOutputPort())
                 writer.SetFileName('trimesh_save.png')
                 writer.Write()
-                print('Look for trimesh_save.png in your current directory.')
+
+                logging.info('Look for trimesh_save.png in your current directory.')
 
         iren.AddObserver('KeyPressEvent', key_press)
         iren.SetInteractorStyle(style)
@@ -261,6 +267,63 @@ class TriMesh_Vtk(TriMesh):
         # window.RemoveAllObservers()
         window.RemoveRenderer(renderer)
         renderer.SetRenderWindow(None)
+
+    def save_png(self, file_name, size=(1000, 800),
+                 light=(0.1, 0.15, 0.05), background=(0.0, 0.0, 0.0),
+                 display_colormap="Range", camera_rot=[0.0, 0.0, 0.0],
+                 zoom=1.0, offscreen=True):
+
+        self.update()
+
+        renderer = vtk.vtkRenderer()
+        actor = self.get_vtk_actor(light)
+        renderer.AddActor(actor)
+        renderer.ResetCamera()
+        renderer.SetBackground(background)
+
+        camera = renderer.GetActiveCamera()
+        camera.Roll(camera_rot[0])
+        camera.Elevation(camera_rot[1])
+        camera.Azimuth(camera_rot[2])
+        camera.Zoom(zoom)
+
+        if (self.__polydata_color_is_scalars__ is True and
+                display_colormap is not None):
+            scalar_bar = vtk.vtkScalarBarActor()
+            scalar_bar.SetTitle(display_colormap)
+            scalar_bar.SetLookupTable(self.get_colormap())
+            scalar_bar.SetNumberOfLabels(7)
+            renderer.AddActor(scalar_bar)
+
+        window = vtk.vtkRenderWindow()
+        window.AddRenderer(renderer)
+        # window.SetAAFrames(6)
+        window.SetSize(size[0], size[1])
+
+        if offscreen:
+            graphics_factory = vtk.vtkGraphicsFactory()
+            graphics_factory.SetOffScreenOnlyMode(1)
+            graphics_factory.SetUseMesaClasses(1)
+            window.SetOffScreenRendering(1)
+
+        window.Render()
+
+        window_to_image_filter = vtk.vtkWindowToImageFilter()
+        window_to_image_filter.SetInput(window)
+        window_to_image_filter.Update()
+
+        if file_name is None:
+            vtk_image = window_to_image_filter.GetOutput()
+            h, w, _ = vtk_image.GetDimensions()
+            vtk_array = vtk_image.GetPointData().GetScalars()
+            components = vtk_array.GetNumberOfComponents()
+            img_array = ns.vtk_to_numpy(vtk_array).reshape(h, w, components)
+            return img_array
+
+        writer = vtk.vtkPNGWriter()
+        writer.SetFileName(file_name)
+        writer.SetInputConnection(window_to_image_filter.GetOutputPort())
+        writer.Write()
 
     # Input for mapper or polydata
     def polydata_input(self, vtk_object):

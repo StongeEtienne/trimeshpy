@@ -1,8 +1,8 @@
 # Etienne St-Onge
+import logging
 
 import numpy as np  # numerical python
 import trimeshpy.math as tmath
-# python triangular mesh processing
 
 ##########################################################################
 # Most of these Mesh operation come from :
@@ -15,7 +15,7 @@ import trimeshpy.math as tmath
 ##########################################################################
 # TODO
 # Decorator to use all these function as static method with inputs
-# Where you always need to give (self.get_triangles, self.get_vertices()) and with option (dtype, atol)
+# Where you always need to give (self.get_triangles, self.get_vertices())
 # where : my_adjancency_mtx = trimesh.TriMesh(my_triangles, my_vertices).vertex_vertex_map()
 # become: my_adjancency_mtx = trimesh.vertex_vertex_map(my_triangles, my_vertices)
 ##########################################################################
@@ -52,51 +52,43 @@ class TriMesh(object):
 
     def _assert_triangles_(self):
         # test "triangles" arguments, type and shape
-        assert type(self.__triangles__).__module__ == np.__name__, \
-            ("triangles should be a numpy array, not: %r" % type(self.__triangles__))
-        assert(np.issubdtype(self.__triangles__.dtype, np.integer)), \
-            ("triangles should be an integer(index), not: %r" %
-             self.__triangles__.dtype)
-        assert(self.__triangles__.shape[1] == 3), \
-            ("each triangle should have 3 points, not: %r" %
-             self.__triangles__.shape[1])
-        assert(self.__triangles__.ndim == 2), \
-            ("triangles array should only have 2 dimension, not: %r" %
-             self.__triangles__.ndim)
-        assert(np.issubdtype(self.__triangles__.dtype, np.integer)), \
-            ("triangles should be an integer(index), not: %r" %
-             self.__triangles__.dtype)
+        if type(self.__triangles__).__module__ != np.__name__:
+            logging.error("triangles should be a numpy array, not: %r" % type(self.__triangles__))
+        if not np.issubdtype(self.__triangles__.dtype, np.integer):
+            logging.error("triangles should be an integer(index), not: %r" % self.__triangles__.dtype)
+        if self.__triangles__.shape[1] != 3:
+            logging.error("each triangle should have 3 points, not: %r" % self.__triangles__.shape[1])
+        if self.__triangles__.ndim != 2:
+            logging.error("triangles array should only have 2 dimension, not: %r" % self.__triangles__.ndim)
+        if not np.issubdtype(self.__triangles__.dtype, np.integer):
+            logging.error("triangles should be an integer(index), not: %r" % self.__triangles__.dtype)
 
     def _assert_vertices_(self):
         # test "vertices" arguments, type and shape
-        assert(type(self.__vertices__).__module__ == np.__name__), \
-            "vertices should be a numpy array, not: %r" % type(self.__vertices__)
-        assert(np.issubdtype(self.__vertices__.dtype, np.floating) or
-               np.issubdtype(self.__vertices__.dtype, np.integer)), \
-            ("vertices should be number(float or integer), not: %r" %
-             type(self.__vertices__))
-        assert(self.__vertices__.shape[1] == 3), \
-            ("each vertex should be 3 dimensional, not: %r" %
-             self.__vertices__.shape[1])
-        assert(self.__vertices__.ndim == 2), \
-            ("vertices array should only have 2 dimension, not: %r" %
-             self.__vertices__.ndim)
+        if type(self.__vertices__).__module__ != np.__name__:
+            logging.error("vertices should be a numpy array, not: %r" % type(self.__vertices__))
+        if not (np.issubdtype(self.__vertices__.dtype, np.floating)
+                or np.issubdtype(self.__vertices__.dtype, np.integer)):
+            logging.error("vertices should be number(float or integer), not: %r" % type(self.__vertices__))
+        if self.__vertices__.shape[1] != 3:
+            logging.error("each vertex should be 3 dimensional, not: %r" % self.__vertices__.shape[1])
+        if self.__vertices__.ndim != 2:
+            logging.error("vertices array should only have 2 dimension, not: %r" % self.__vertices__.ndim)
 
     def _assert_edges_(self):
-        e_sqr_length = tmath.square_length(self.__vertices__[np.roll(self.__triangles__, 1, axis=1)] - self.__vertices__[np.roll(self.__triangles__, -1, axis=1)], axis=2)
-        assert((e_sqr_length > self.__atol__).all()), \
-            ("triangles should not have zero length edges")
+        e_sqr_length = tmath.util.square_length(self.__vertices__[np.roll(self.__triangles__, 1, axis=1)] - self.__vertices__[np.roll(self.__triangles__, -1, axis=1)], axis=2)
+        if (e_sqr_length < self.__atol__).any():
+            logging.error("triangles should not have zero length edges")
 
     def _assert_dtype_(self):
-        assert(np.issubdtype(self.__dtype__, np.floating)), \
-            ("dtype should be a float, not: %r" % self.__dtype__)
+        if not np.issubdtype(self.__dtype__, np.floating):
+            logging.error("dtype should be a float, not: %r" % self.__dtype__)
 
     def _assert_atol_(self):
-        assert(np.issubdtype(type(self.__atol__), np.floating)), \
-            ("dtype should be a float, not: %r" % type(self.__atol__))
-        assert(self.__atol__ > np.finfo(self.__dtype__).eps), \
-            ("atol should be bigger than dtype machine epsilon: %r !> %r " %
-             (self.__atol__, np.finfo(self.__dtype__).eps))
+        if not np.issubdtype(type(self.__atol__), np.floating):
+            logging.error("dtype should be a float, not: %r" % type(self.__atol__))
+        if self.__atol__ < np.finfo(self.__dtype__).eps:
+            logging.error("atol should be bigger than dtype machine epsilon: %r !> %r " % (self.__atol__, np.finfo(self.__dtype__).eps))
 
     # Get class variable
     def get_nb_triangles(self):
@@ -141,14 +133,20 @@ class TriMesh(object):
     def vertices_transformation(self, transfo):
         return tmath.vertices_transformation(self.get_triangles(), self.get_vertices(), transfo)
 
-    def flip_triangle_and_vertices(self, flip=[1, 1, 1]):
-        return tmath.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
+    def vertices_affine(self, affine):
+        return tmath.vertices_affine(self.get_triangles(), self.get_vertices(), affine)
 
     def vertices_flip(self, flip=[1, 1, 1]):
         return tmath.vertices_flip(self.get_triangles(), self.get_vertices(), flip)
 
     def triangles_face_flip(self, flip=[0, 2]):
         return tmath.triangles_face_flip(self.get_triangles(), self.get_vertices(), flip)
+
+    def flip_triangle_and_vertices(self, flip=[1, 1, 1]):
+        return tmath.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
+
+    def is_transformation_flip(self, transfo):
+        return tmath.is_transformation_flip(transfo)
 
     # Map ( Adjacency / Connectivity ) Functions
     def edge_map(self, l2_weighted=False):
@@ -167,8 +165,26 @@ class TriMesh(object):
         return tmath.vertices_degree(self.get_triangles(), self.get_vertices())
 
     # Angles Functions
+    def triangle_trigo_angle(self, angle_function):
+        return tmath.triangle_trigo_angle(self.get_triangles(), self.get_vertices(), angle_function=angle_function)
+
+    def edge_trigo_angle(self, rot, angle_function):
+        return tmath.edge_trigo_angle(self.get_triangles(), self.get_vertices(), rot=rot, angle_function=angle_function)
+
     def triangle_angle(self):
         return tmath.triangle_angle(self.get_triangles(), self.get_vertices())
+
+    def triangle_dot_angle(self):
+        return tmath.triangle_dot_angle(self.get_triangles(), self.get_vertices())
+
+    def triangle_cos_angle(self):
+        return tmath.triangle_cos_angle(self.get_triangles(), self.get_vertices())
+
+    def triangle_sin_angle(self):
+        return tmath.triangle_sin_angle(self.get_triangles(), self.get_vertices())
+
+    def triangle_cotan_angle(self):
+        return tmath.triangle_cotan_angle(self.get_triangles(), self.get_vertices())
 
     def triangle_is_obtuse(self):
         return tmath.triangle_is_obtuse(self.get_triangles(), self.get_vertices())
@@ -179,32 +195,17 @@ class TriMesh(object):
     def triangle_is_right(self):
         return tmath.triangle_is_right(self.get_triangles(), self.get_vertices())
 
-    def edge_theta_angle(self):
-        return tmath.edge_theta_angle(self.get_triangles(), self.get_vertices())
+    def edge_cotan_map(self):
+        return tmath.edge_cotan_map(self.get_triangles(), self.get_vertices())
 
-    def edge_alpha_angle(self):
-        return tmath.edge_alpha_angle(self.get_triangles(), self.get_vertices())
+    def edge_angle_is_obtuse(self, rot):
+        return tmath.edge_trigo_is_obtuse(self.get_triangles(), self.get_vertices(), rot=rot)
 
-    def edge_gamma_angle(self):
-        return tmath.edge_gamma_angle(self.get_triangles(), self.get_vertices())
+    def edge_angle_is_acute(self, rot):
+        return tmath.edge_trigo_is_acute(self.get_triangles(), self.get_vertices(), rot=rot)
 
-    def cotan_alpha_beta_angle(self):
-        return tmath.cotan_alpha_beta_angle(self.get_triangles(), self.get_vertices())
-
-    def edge_triangle_is_obtuse(self):
-        return tmath.edge_triangle_is_obtuse(self.get_triangles(), self.get_vertices())
-
-    def edge_triangle_is_acute(self):
-        return tmath.edge_triangle_is_acute(self.get_triangles(), self.get_vertices())
-
-    def edge_theta_is_obtuse(self):
-        return tmath.edge_theta_is_obtuse(self.get_triangles(), self.get_vertices())
-
-    def edge_theta_is_acute(self):
-        return tmath.edge_theta_is_acute(self.get_triangles(), self.get_vertices())
-
-    def edge_triangle_normal_angle(self):
-        return tmath.edge_triangle_normal_angle(self.get_triangles(), self.get_vertices())
+    def edge_angle_is_right(self, rot):
+        return tmath.edge_trigo_is_right(self.get_triangles(), self.get_vertices(), rot=rot)
 
     # Area Functions
     def triangles_area(self):
@@ -274,8 +275,8 @@ class TriMesh(object):
     def mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None):
         return tmath.mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)
 
-    def positive_mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None, gaussian_threshold=0.2, angle_threshold=1.0):
-        return tmath.positive_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file, gaussian_threshold=gaussian_threshold, angle_threshold=angle_threshold)
+    def positive_mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None, gaussian_threshold=0.2, angle_threshold=1.0, subsample_file=1):
+        return tmath.positive_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file, gaussian_threshold=gaussian_threshold, angle_threshold=angle_threshold, subsample_file=subsample_file)
 
     def volume_mass_stiffness_smooth(self, nb_iter=1, diffusion_step=1.0, flow_file=None):
         return tmath.volume_mass_stiffness_smooth(self.get_triangles(), self.get_vertices(), nb_iter=nb_iter, diffusion_step=diffusion_step, flow_file=flow_file)

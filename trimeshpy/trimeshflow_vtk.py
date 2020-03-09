@@ -1,9 +1,12 @@
 # Etienne St-Onge
 
+import logging
+
+import numpy as np
+
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
 from trimeshpy.trimeshflow_class import TriMeshFlow
 import trimeshpy.vtk_util as vtk_u
-import numpy as np
 
 vtk = vtk_u.import_vtk()
 
@@ -35,6 +38,11 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
         TriMeshFlow.set_vertices_flow_from_memmap(
             self, vertices_flow_memmap=vertices_flow_memmap,
             flow_length=flow_length, nb_vertices=nb_vertices)
+        self.__polydata_is_up_to_date__ = False
+
+    def set_vertices_flow_from_hdf5(self, vertices_flow_hdf5):
+        TriMeshFlow.set_vertices_flow_from_hdf5(
+            self, vertices_flow_hdf5)
         self.__polydata_is_up_to_date__ = False
 
     def set_vertices_flow(self, vertices_flow):
@@ -75,7 +83,8 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
         def key_press(obj, event):
             key = obj.GetKeySym()
             if key == 's' or key == 'S':
-                print('Saving image...')
+                logging.info('Saving image...')
+
                 renderLarge = vtk.vtkRenderLargeImage()
                 if vtk.VTK_MAJOR_VERSION <= 5:
                     renderLarge.SetInput(renderer)
@@ -87,7 +96,7 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
                 writer.SetInputConnection(renderLarge.GetOutputPort())
                 writer.SetFileName('trimesh_save.png')
                 writer.Write()
-                print('Look for trimesh_save.png in your current directory.')
+                logging.info('Look for trimesh_save.png in your current directory.')
 
         iren.AddObserver('KeyPressEvent', key_press)
         iren.SetInteractorStyle(style)
