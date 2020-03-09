@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from trimeshpy import TriMesh, TriMesh_Vtk
-import trimeshpy_data
+import trimeshpy.data
 from trimeshpy.math.util import (dot, dot_area, dot_angle, dot_cos_angle,
                                  dot_sin_angle, dot_cotan_angle, square_length,
                                  tensor_dot, tensor_area, tensor_cos_angle,
@@ -13,18 +13,18 @@ from trimeshpy.math.util import (dot, dot_area, dot_angle, dot_cos_angle,
 class TestTriMesh(unittest.TestCase):
     def setUp(self):
         # Cube
-        triangles = np.load(trimeshpy_data.cube_triangles)
-        vertices = np.load(trimeshpy_data.cube_vertices)
+        triangles = np.load(trimeshpy.data.cube_triangles)
+        vertices = np.load(trimeshpy.data.cube_vertices)
         self.cube = TriMesh(triangles, vertices)
         self.cube_tv_matrix = self.cube.triangle_vertex_map()
 
         # Sphere
-        self.sphere = TriMesh_Vtk(trimeshpy_data.sphere, None)
+        self.sphere = TriMesh_Vtk(trimeshpy.data.sphere, None)
         self.sphere_tv_matrix = self.sphere.triangle_vertex_map()
 
         # Grid_mesh
-        triangles = np.load(trimeshpy_data.planar_triangles)
-        vertices = np.load(trimeshpy_data.planar_vertices2d)
+        triangles = np.load(trimeshpy.data.planar_triangles)
+        vertices = np.load(trimeshpy.data.planar_vertices2d)
         self.grid_mesh_2d = TriMesh(triangles, vertices, assert_args=False)
 
     # Connectivity matrix
@@ -174,7 +174,7 @@ class TestTriMesh(unittest.TestCase):
 
     # Util
     def is_equal(self, value0, value1):
-        if isinstance(value0, (bool, int, long,)):
+        if isinstance(value0, (bool, int,)):
             self.assertTrue(value0 == value1)
         elif isinstance(value0, float):
             self.assertTrue(value0 == value1)

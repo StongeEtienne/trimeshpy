@@ -1,0 +1,6 @@
+include trimeshpy/data/brain_mesh/*
+include trimeshpy/data/test_mesh/*
+include LICENSE.txt
+include README.md
+include requirements.txt
+include contributors.txt

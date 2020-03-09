@@ -14,12 +14,8 @@ from .trimesh_vtk import TriMesh_Vtk
 from .trimeshflow_vtk import TriMeshFlow_Vtk
 
 import trimeshpy.math
+import trimeshpy.data
 
 __all__ = ["trimesh_class", "trimeshflow_class",
-           "trimesh_vtk", "trimeshflow_vtk", "math"]
+           "trimesh_vtk", "trimeshflow_vtk", "math", "data"]
 
-
-try:
-    import trimeshpy_data as data
-except ImportError:
-    logging.warning("cannot load 'trimeshpy_data'")
