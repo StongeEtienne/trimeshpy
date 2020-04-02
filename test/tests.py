@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import unittest
 
 import numpy as np
@@ -144,7 +147,7 @@ class TestTriMesh(unittest.TestCase):
         gaussian_curvature = self.cube.vertices_gaussian_curvature()
         mean_curvature = self.cube.mean_curvature_normal_matrix(True)
 
-        self.is_equal(self.cube.vertices_gaussian_curvature(), np.pi / 2)
+        self.is_equal(gaussian_curvature, np.pi / 2)
 
     # Planar
     def test_plane_structure(self):

@@ -1,4 +1,5 @@
-# by Etienne St-Onge
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import trimeshpy
 from trimeshpy.trimesh_vtk import TriMesh_Vtk
@@ -82,7 +83,6 @@ def main():
     torus_tmf.display_vertices_flow()
     del t_mesh, torus_tmf
 
-
     # Init Spot
     sp_mesh = TriMesh_Vtk(trimeshpy.data.spot, None)
     spot_tmf = TriMeshFlow_Vtk(sp_mesh.get_triangles(), sp_mesh.get_vertices())
@@ -108,7 +108,6 @@ def main():
     spot_tmf.display()
     spot_tmf.display_vertices_flow()
     del sp_mesh, spot_tmf
-
 
     # Init Brain
     b_mesh = TriMesh_Vtk(trimeshpy.data.brain_lh, None)

@@ -33,6 +33,10 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
         TriMeshFlow.set_vertices(self, vertices)
         self.__polydata_is_up_to_date__ = False
 
+    def set_vertices_flow(self, vertices_flow):
+        TriMeshFlow.set_vertices_flow(self, vertices_flow)
+        self.__polydata_is_up_to_date__ = False
+
     def set_vertices_flow_from_memmap(self, vertices_flow_memmap,
                                       flow_length, nb_vertices):
         TriMeshFlow.set_vertices_flow_from_memmap(
@@ -43,10 +47,6 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
     def set_vertices_flow_from_hdf5(self, vertices_flow_hdf5):
         TriMeshFlow.set_vertices_flow_from_hdf5(
             self, vertices_flow_hdf5)
-        self.__polydata_is_up_to_date__ = False
-
-    def set_vertices_flow(self, vertices_flow):
-        TriMeshFlow.set_vertices_flow(self, vertices_flow)
         self.__polydata_is_up_to_date__ = False
 
     # vtk polydata function
@@ -64,14 +64,12 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
             self, TriMeshFlow.get_vertices(self, vertices_flow_index=vertices_flow_index))
 
     def display_vertices_flow(self, display_name="trimesh", size=(400, 400),
-                              light=(0.1, 0.15, 0.05), png_magnify=1):
-        # from dipy.fvtk
+                              png_magnify=1):
         renderer = vtk.vtkRenderer()
         renderer.AddActor(self.get_vertices_flow_actor())
         renderer.ResetCamera()
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
-        # window.SetAAFrames(6)
         window.SetWindowName(display_name)
         window.SetSize(size[0], size[1])
         style = vtk.vtkInteractorStyleTrackballCamera()
@@ -84,12 +82,12 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
             key = obj.GetKeySym()
             if key == 's' or key == 'S':
                 logging.info('Saving image...')
-
                 renderLarge = vtk.vtkRenderLargeImage()
                 if vtk.VTK_MAJOR_VERSION <= 5:
                     renderLarge.SetInput(renderer)
                 else:
                     renderLarge.SetInputData(renderer)
+
                 renderLarge.SetMagnification(png_magnify)
                 renderLarge.Update()
                 writer = vtk.vtkPNGWriter()
@@ -104,13 +102,11 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
         picker.Pick(85, 126, 0, renderer)
         window.Render()
         iren.Start()
-        # window.RemoveAllObservers()
         window.RemoveRenderer(renderer)
         renderer.SetRenderWindow(None)
 
-    def get_vertices_flow_actor(self, colors="RGB", opacity=1,
-                                linewidth=1, spline_subdiv=None):
-        # from dipy.fvtk
+    def get_vertices_flow_actor(self, colors="RGB", opacity=1, linewidth=1,
+                                spline_subdiv=None):
         lines = np.swapaxes(self.get_vertices_flow(), 0, 1)
         poly_data = vtk_u.lines_to_vtk_polydata(lines, colors)
         next_input = poly_data
@@ -127,7 +123,6 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
         poly_mapper.ScalarVisibilityOn()
         poly_mapper.SetScalarModeToUsePointFieldData()
         poly_mapper.SelectColorArray("Colors")
-        # poly_mapper.SetColorModeToMapScalars()
         poly_mapper.Update()
 
         # Set Actor

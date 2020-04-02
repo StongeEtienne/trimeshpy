@@ -13,10 +13,16 @@ vtk = vtk_u.import_vtk()
 ns = vtk_u.import_vtk_numpy_support()
 
 
-# TODO load color info
 class TriMesh_Vtk(TriMesh):
-    # Get and Set
-    # PolyData
+    """
+     Triangle Mesh VTK class
+        fast python mesh processing
+        with numpy, scipy, and VTK
+
+    Triangle list
+    Vertex list
+    vtkPolyData generated when needed
+    """
 
     def __init__(self, triangles, vertices, dtype=np.float64,
                  atol=1e-8, assert_args=True):
@@ -181,35 +187,32 @@ class TriMesh_Vtk(TriMesh):
         poly_mapper.StaticOn()
         poly_mapper.Update()
 
-        if self.__polydata_color_is_scalars__ is True:
+        if self.__polydata_color_is_scalars__:
             poly_mapper.SetLookupTable(self.get_colormap())
             poly_mapper.SetScalarModeToUsePointData()
             poly_mapper.UseLookupTableScalarRangeOn()
 
         return poly_mapper
 
-    def get_vtk_actor(self, light=(0.4, 0.15, 0.05)):
+    def get_vtk_actor(self, light=(0.2, 0.15, 0.05)):
         poly_mapper = self.get_vtk_polymapper()
         actor = vtk.vtkActor()
         actor.SetMapper(poly_mapper)
-        # actor.GetProperty().SetRepresentationToWireframe()
         actor.GetProperty().BackfaceCullingOn()
         actor.GetProperty().SetInterpolationToPhong()
-        # actor.GetProperty().SetInterpolationToFlat()
 
         actor.GetProperty().SetAmbient(light[0])  # .3
         actor.GetProperty().SetDiffuse(light[1])  # .3
         actor.GetProperty().SetSpecular(light[2])  # .3
-
         return actor
 
     def display(self, display_name="trimesh", size=(1000, 800),
-                light=(0.1, 0.15, 0.05), background=(0.0, 0.0, 0.0),
+                light=(0.2, 0.15, 0.05), background=(0.0, 0.0, 0.0),
                 png_magnify=1, display_colormap="Range",
-                camera_rot=[0.0, 0.0, 0.0], zoom=1.0):
+                camera_rot=(0.0, 0.0, 0.0), zoom=1.0):
         # from dipy.fvtk
         renderer = vtk.vtkRenderer()
-        actor = self.get_vtk_actor(light)
+        actor = self.get_vtk_actor(light=light)
         renderer.AddActor(actor)
         renderer.ResetCamera()
         renderer.SetBackground(background)
@@ -220,8 +223,7 @@ class TriMesh_Vtk(TriMesh):
         camera.Azimuth(camera_rot[2])
         camera.Zoom(zoom)
 
-        if (self.__polydata_color_is_scalars__ is True and
-                display_colormap is not None):
+        if self.__polydata_color_is_scalars__ and display_colormap:
             scalar_bar = vtk.vtkScalarBarActor()
             scalar_bar.SetTitle(display_colormap)
             scalar_bar.SetLookupTable(self.get_colormap())
@@ -230,7 +232,6 @@ class TriMesh_Vtk(TriMesh):
 
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
-        # window.SetAAFrames(6)
         window.SetWindowName(display_name)
         window.SetSize(size[0], size[1])
         style = vtk.vtkInteractorStyleTrackballCamera()
@@ -244,18 +245,18 @@ class TriMesh_Vtk(TriMesh):
             if key == 's' or key == 'S':
                 logging.info('Saving image...')
 
-                renderLarge = vtk.vtkRenderLargeImage()
+                render_large = vtk.vtkRenderLargeImage()
                 if vtk.VTK_MAJOR_VERSION <= 5:
-                    renderLarge.SetInput(renderer)
+                    render_large.SetInput(renderer)
                 else:
-                    renderLarge.SetInputData(renderer)
-                renderLarge.SetMagnification(png_magnify)
-                renderLarge.Update()
+                    render_large.SetInputData(renderer)
+
+                render_large.SetMagnification(png_magnify)
+                render_large.Update()
                 writer = vtk.vtkPNGWriter()
-                writer.SetInputConnection(renderLarge.GetOutputPort())
+                writer.SetInputConnection(render_large.GetOutputPort())
                 writer.SetFileName('trimesh_save.png')
                 writer.Write()
-
                 logging.info('Look for trimesh_save.png in your current directory.')
 
         iren.AddObserver('KeyPressEvent', key_press)
@@ -264,19 +265,16 @@ class TriMesh_Vtk(TriMesh):
         picker.Pick(85, 126, 0, renderer)
         window.Render()
         iren.Start()
-        # window.RemoveAllObservers()
         window.RemoveRenderer(renderer)
         renderer.SetRenderWindow(None)
 
     def save_png(self, file_name, size=(1000, 800),
-                 light=(0.1, 0.15, 0.05), background=(0.0, 0.0, 0.0),
-                 display_colormap="Range", camera_rot=[0.0, 0.0, 0.0],
+                 light=(0.2, 0.15, 0.05), background=(0.0, 0.0, 0.0),
+                 display_colormap="Range", camera_rot=(0.0, 0.0, 0.0),
                  zoom=1.0, offscreen=True):
-
         self.update()
-
         renderer = vtk.vtkRenderer()
-        actor = self.get_vtk_actor(light)
+        actor = self.get_vtk_actor(light=light)
         renderer.AddActor(actor)
         renderer.ResetCamera()
         renderer.SetBackground(background)
@@ -287,8 +285,7 @@ class TriMesh_Vtk(TriMesh):
         camera.Azimuth(camera_rot[2])
         camera.Zoom(zoom)
 
-        if (self.__polydata_color_is_scalars__ is True and
-                display_colormap is not None):
+        if self.__polydata_color_is_scalars__ and display_colormap:
             scalar_bar = vtk.vtkScalarBarActor()
             scalar_bar.SetTitle(display_colormap)
             scalar_bar.SetLookupTable(self.get_colormap())
@@ -297,7 +294,6 @@ class TriMesh_Vtk(TriMesh):
 
         window = vtk.vtkRenderWindow()
         window.AddRenderer(renderer)
-        # window.SetAAFrames(6)
         window.SetSize(size[0], size[1])
 
         if offscreen:

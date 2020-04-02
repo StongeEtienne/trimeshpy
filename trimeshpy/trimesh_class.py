@@ -1,24 +1,19 @@
 # Etienne St-Onge
+
+"""
+Triangular Mesh processing class
+
+Most of these mesh operations are from :
+    Meyer, M., Desbrun, M., Schroder, P. and Barr, A.H., 2003.
+    Discrete differential-geometry operators for triangulated 2-manifolds.
+    In Visualization and mathematics III, (pp. 35-57). Springer.
+"""
+
 import logging
 
-import numpy as np  # numerical python
+import numpy as np
+
 import trimeshpy.math as tmath
-
-##########################################################################
-# Most of these Mesh operation come from :
-# -Discrete Differential-Geometry Operators for Triangulated 2-Manifolds :
-#     by Mark Meyer[1], Mathieu Desbrun[1,2], Peter Schroder[1]
-#        and Alan H. Barr[1]; [1]Caltech, [2]USC
-# -Geometric Signal Processing on Polygonal Meshes
-##########################################################################
-
-##########################################################################
-# TODO
-# Decorator to use all these function as static method with inputs
-# Where you always need to give (self.get_triangles, self.get_vertices())
-# where : my_adjancency_mtx = trimesh.TriMesh(my_triangles, my_vertices).vertex_vertex_map()
-# become: my_adjancency_mtx = trimesh.vertex_vertex_map(my_triangles, my_vertices)
-##########################################################################
 
 
 class TriMesh(object):
@@ -76,7 +71,8 @@ class TriMesh(object):
             logging.error("vertices array should only have 2 dimension, not: %r" % self.__vertices__.ndim)
 
     def _assert_edges_(self):
-        e_sqr_length = tmath.util.square_length(self.__vertices__[np.roll(self.__triangles__, 1, axis=1)] - self.__vertices__[np.roll(self.__triangles__, -1, axis=1)], axis=2)
+        e_sqr_length = (tmath.util.square_length(self.__vertices__[np.roll(self.__triangles__, 1, axis=1)]
+                                                 - self.__vertices__[np.roll(self.__triangles__, -1, axis=1)], axis=2))
         if (e_sqr_length < self.__atol__).any():
             logging.error("triangles should not have zero length edges")
 
@@ -122,7 +118,7 @@ class TriMesh(object):
     def nb_triangles_per_vertex(self):
         return self.vertices_degree()
 
-    # Mathematical functions
+    # Math functions
     # Points Transformations Functions
     def vertices_translation(self, translation):
         return tmath.vertices_translation(self.get_triangles(), self.get_vertices(), translation)
@@ -136,13 +132,13 @@ class TriMesh(object):
     def vertices_affine(self, affine):
         return tmath.vertices_affine(self.get_triangles(), self.get_vertices(), affine)
 
-    def vertices_flip(self, flip=[1, 1, 1]):
+    def vertices_flip(self, flip=(1, 1, 1)):
         return tmath.vertices_flip(self.get_triangles(), self.get_vertices(), flip)
 
-    def triangles_face_flip(self, flip=[0, 2]):
+    def triangles_face_flip(self, flip=(0, 2)):
         return tmath.triangles_face_flip(self.get_triangles(), self.get_vertices(), flip)
 
-    def flip_triangle_and_vertices(self, flip=[1, 1, 1]):
+    def flip_triangle_and_vertices(self, flip=(1, 1, 1)):
         return tmath.flip_triangle_and_vertices(self.get_triangles(), self.get_vertices(), flip)
 
     def is_transformation_flip(self, transfo):
@@ -171,9 +167,6 @@ class TriMesh(object):
     def edge_trigo_angle(self, rot, angle_function):
         return tmath.edge_trigo_angle(self.get_triangles(), self.get_vertices(), rot=rot, angle_function=angle_function)
 
-    def triangle_angle(self):
-        return tmath.triangle_angle(self.get_triangles(), self.get_vertices())
-
     def triangle_dot_angle(self):
         return tmath.triangle_dot_angle(self.get_triangles(), self.get_vertices())
 
@@ -197,15 +190,6 @@ class TriMesh(object):
 
     def edge_cotan_map(self):
         return tmath.edge_cotan_map(self.get_triangles(), self.get_vertices())
-
-    def edge_angle_is_obtuse(self, rot):
-        return tmath.edge_trigo_is_obtuse(self.get_triangles(), self.get_vertices(), rot=rot)
-
-    def edge_angle_is_acute(self, rot):
-        return tmath.edge_trigo_is_acute(self.get_triangles(), self.get_vertices(), rot=rot)
-
-    def edge_angle_is_right(self, rot):
-        return tmath.edge_trigo_is_right(self.get_triangles(), self.get_vertices(), rot=rot)
 
     # Area Functions
     def triangles_area(self):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 
 from os.path import splitext
+
 from nibabel.freesurfer.io import read_geometry
 
 from trimeshpy.trimesh_vtk import TriMesh_Vtk

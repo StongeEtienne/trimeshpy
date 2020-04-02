@@ -43,19 +43,19 @@ def vertices_affine(triangles, vertices, affine):
     return (np.dot(affine[:3, :3], vertices.T) + affine[:3, 3:4]).T
 
 
-def vertices_flip(triangles, vertices, flip=[1, 1, 1]):
+def vertices_flip(triangles, vertices, flip=(1, 1, 1)):
     # flip = [ f_x, f_y, f_y] : -1 to flip/ 1 else
     return vertices * flip
 
 
-def triangles_face_flip(triangles, vertices, flip=[0, 2]):
+def triangles_face_flip(triangles, vertices, flip=(0, 2)):
     # flip triangle face "flip normal",
     # flip = [i, j] to flip i,j columns to flip
     triangles[:, flip] = triangles[:, flip[::-1]]
     return triangles
 
 
-def flip_triangle_and_vertices(triangles, vertices, flip=[1, 1, 1]):
+def flip_triangle_and_vertices(triangles, vertices, flip=(1, 1, 1)):
     # flip = [ f_x, f_y, f_y] : -1 to flip/ 1 else
     # and autorotate face if impair flip
     vertices = vertices * flip

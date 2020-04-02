@@ -48,29 +48,6 @@ def triangle_trigo_angle(triangles, vertices, angle_function):
     return tri_dot_angles
 
 
-# def triangle_angle(triangles, vertices):
-#     logging.warning("Deprecated, use triangle_trigo_angle() instead")
-#     if scipy.sparse.__name__ in type(vertices).__module__:
-#         vertices = vertices.toarray()
-#     # get theta angles for each points in each triangles
-#     e_sqr_length = square_length(vertices[np.roll(triangles, 1, axis=1)] -
-#                                  vertices[np.roll(triangles, -1, axis=1)],
-#                                  axis=2)
-#     e_length = np.sqrt(e_sqr_length)
-#
-#     # get the every angles of each triangles (opposite angles)
-#     tri_angles = np.zeros_like(triangles, dtype=G_DTYPE)
-#     tri_angles[:, 0] = np.arccos((e_sqr_length[:, 1] + e_sqr_length[:, 2] - e_sqr_length[:, 0]) / (2.0 * e_length[:, 1] * e_length[:, 2]))
-#     tri_angles[:, 1] = np.arccos((e_sqr_length[:, 0] + e_sqr_length[:, 2] - e_sqr_length[:, 1]) / (2.0 * e_length[:, 0] * e_length[:, 2]))
-#     tri_angles[:, 2] = (np.pi - tri_angles[:, 0] - tri_angles[:, 1])
-#
-#     if is_logging_in_debug() and not np.allclose(
-#             np.arccos((e_sqr_length[:, 0] + e_sqr_length[:, 1] - e_sqr_length[:, 2]) / (2.0 * e_length[:, 0] * e_length[:, 1])), tri_angles[:, 2], atol=G_ATOL):
-#         logging.debug("WARNING triangle_angle does NOT sum to 180deg")
-#
-#     return tri_angles
-
-
 def triangle_dot_angle(triangles, vertices):
     angles = triangle_trigo_angle(triangles, vertices, angle_function=dot_angle)
     if is_logging_in_debug() and not np.allclose(angles.sum(-1), np.pi, atol=G_ATOL):
@@ -141,8 +118,8 @@ def edge_trigo_angle(triangles, vertices, rot, angle_function):
     elif rot == 2:  # Gamma(Y) angles
         e_angles = np.hstack([t_angles[:, 1], t_angles[:, 2], t_angles[:, 0]])
     else:
-        logging.error("edge_trigo_theta_angle(...rot), Choose triangle angle wanted:"
-                      " 0=Theta(T), 1=Alpha(A), 2=Gamma(Y)")
+        raise ValueError("edge_trigo_theta_angle(..., rot), {} \n"
+                         "Choose triangle: 0=Theta(T), 1=Alpha(A), 2=Gamma(Y)")
 
     angles_map = csc_matrix((e_angles, (vts_i, vts_j)), shape=(vertices.shape[0], vertices.shape[0]))
     return angles_map

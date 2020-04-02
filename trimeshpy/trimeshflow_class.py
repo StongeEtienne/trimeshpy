@@ -1,8 +1,7 @@
 # Etienne St-Onge
 
-import h5py
-from six import string_types
 import logging
+from six import string_types
 
 import numpy as np
 
