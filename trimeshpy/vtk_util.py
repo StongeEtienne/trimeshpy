@@ -123,6 +123,7 @@ def load_polydata(file_name):
 # Save
 def save_polydata(polydata, file_name, binary=False, color_array_name=None):
     # get file extension (type)
+    print ("bonjour")
     file_extension = file_name.split(".")[-1].lower()
 
     if file_extension == "vtk":
