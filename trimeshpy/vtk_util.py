@@ -121,10 +121,9 @@ def load_polydata(file_name):
 
 
 # Save
-def save_polydata(polydata, file_name, binary=False, color_array_name=None, legacy=True):
+def save_polydata(polydata, file_name, binary=False, color_array_name=None, legacy_vtk_format=False):
     # get file extension (type)
     file_extension = file_name.split(".")[-1].lower()
-
     if file_extension == "vtk":
         writer = vtk.vtkPolyDataWriter()
     elif file_extension == "vtp":
@@ -150,7 +149,7 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None, lega
     writer = set_input(writer, polydata)
     if color_array_name is not None:
         writer.SetArrayName(color_array_name)
-    if legacy:
+    if legacy_vtk_format:
         writer.SetFileVersion(42)
     if binary:
         writer.SetFileTypeToBinary()
