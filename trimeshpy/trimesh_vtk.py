@@ -87,7 +87,7 @@ class TriMesh_Vtk(TriMesh):
 
     def set_polydata_triangles(self, triangles):
         vtk_triangles = np.hstack(
-            np.c_[np.ones(len(triangles)).astype(np.int) * 3, triangles])
+            np.c_[np.ones(len(triangles)).astype(np.int32) * 3, triangles])
         vtk_triangles = ns.numpy_to_vtkIdTypeArray(vtk_triangles, deep=True)
         vtk_cells = vtk.vtkCellArray()
         vtk_cells.SetCells(len(triangles), vtk_triangles)

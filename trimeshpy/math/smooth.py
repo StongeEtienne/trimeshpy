@@ -20,7 +20,7 @@ from trimeshpy.math.util import (dot, euler_step, normalize_vectors,
                                  is_numeric, logging_trange)
 
 from trimeshpy.math.mesh_global import G_DTYPE, G_ATOL
-from scipy.sparse.csc import csc_matrix
+from scipy.sparse import csc_matrix
 
 
 # Mesh smoothing (flow)
