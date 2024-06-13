@@ -1,6 +1,6 @@
 # Etienne St-Onge
 
-from __future__ import division
+
 
 import logging
 import tqdm
