@@ -1,6 +1,6 @@
 # Etienne St-Onge
 
-from __future__ import division
+
 
 import h5py
 import importlib
@@ -166,7 +166,6 @@ def lines_to_vtk_polydata(lines, colors="RGB"):
     lines_range = range(nb_lines)
 
     # Get lines_array in vtk input format
-    # todo put from array
     lines_array = []
     points_per_line = np.zeros([nb_lines], dtype=np.int32)
     current_position = 0
@@ -324,7 +323,7 @@ def generate_colormap(scale_range=(0.0, 1.0), hue_range=(0.8, 0.0),
 
 # transformation
 def vtk_to_vox(vts, nibabel_img):
-    inv_affine = np.linalg.inv(nibabel_img.get_affine())
+    inv_affine = np.linalg.inv(nibabel_img.affine)
     flip = np.diag([-1, -1, 1, 1])
     vts = apply_affine(np.dot(inv_affine, flip), vts)
     return vts
@@ -337,12 +336,12 @@ def vtk_to_voxmm(vts, nibabel_img):
 
 def vox_to_vtk(vts, nibabel_img):
     flip = np.diag([-1., -1., 1., 1.])
-    vts = apply_affine(np.dot(flip, nibabel_img.get_affine()), vts)
+    vts = apply_affine(np.dot(flip, nibabel_img.affine), vts)
     return vts
 
 
 def voxmm_to_vtk(vts, nibabel_img):
-    scale = np.array(nibabel_img.get_header().get_zooms(), dtype=np.float)
+    scale = np.array(nibabel_img.get_header().get_zooms(), dtype=float)
     return vox_to_vtk(vts / scale, nibabel_img)
 
 

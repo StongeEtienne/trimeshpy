@@ -1,6 +1,6 @@
 # Etienne St-Onge
 
-from __future__ import division
+
 
 import numpy as np
 
@@ -99,7 +99,7 @@ from trimeshpy.math.mesh_global import G_DTYPE
 def edge_adjacency(triangles, vertices):
     vts_i = np.hstack([triangles[:, 0], triangles[:, 1], triangles[:, 2]])
     vts_j = np.hstack([triangles[:, 1], triangles[:, 2], triangles[:, 0]])
-    values = np.ones_like(vts_i, dtype=np.bool)
+    values = np.ones_like(vts_i, dtype=bool)
     vv_map = csc_matrix((values, (vts_i, vts_j)),
                         shape=(vertices.shape[0], vertices.shape[0]))
     return vv_map
@@ -162,7 +162,7 @@ def edge_opposing_vertex(triangles, vertices):
 def triangle_vertex_map(triangles, vertices):
     triangles_index = np.repeat(np.arange(len(triangles)), 3)
     vertices_index = np.hstack(triangles)
-    values = np.ones_like(triangles_index, dtype=np.bool)
+    values = np.ones_like(triangles_index, dtype=bool)
 
     tv_map = csc_matrix((values, (triangles_index, vertices_index)),
                         shape=(len(triangles), vertices.shape[0]))
