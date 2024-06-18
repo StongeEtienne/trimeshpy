@@ -3,18 +3,18 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-REQUIREMENNTS = ["numpy>=1.16.2",
-                 "scipy>=1.0",
-                 "h5py>=2.5.0",
-                 "vtk>=8.1.2",
-                 "tqdm>=4.29.0",
-                 "nibabel>=2.4.0"],
+REQUIREMENTS = ["numpy>=1.24.0",
+                "scipy>=1.10.0",
+                "h5py>=3.7.0",
+                "vtk>=9.2.0",
+                "tqdm>=4.29.0",
+                "nibabel>=5.2.0"],
 
 setuptools.setup(
     name='trimeshpy',
     packages=setuptools.find_packages(),
-    install_requires=REQUIREMENNTS,
-    version='0.0.2',
+    install_requires=REQUIREMENTS,
+    version='0.0.3',
     license='MIT',
     author="Etienne St-Onge",
     author_email="Firstname.Lastname@usherbrooke.ca",
@@ -28,8 +28,9 @@ setuptools.setup(
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
     ],
 )
