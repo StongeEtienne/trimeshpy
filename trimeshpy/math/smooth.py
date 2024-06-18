@@ -1,6 +1,6 @@
 # Etienne St-Onge
 
-from __future__ import division
+
 
 import h5py
 import numpy as np
@@ -208,14 +208,14 @@ def mass_stiffness_smooth(triangles, vertices, nb_iter=1,
     vertices_csc = csc_matrix(vertices)
     curvature_normal_mtx = mean_curvature_normal_matrix(
         triangles, vertices_csc, area_weighted=False)
-    # mass_mtx = mass_matrix(triangles, vertices_csc).astype(np.float)
+    # mass_mtx = mass_matrix(triangles, vertices_csc).astype(float)
 
     for i in logging_trange(nb_iter, desc="mass_stiffness_smooth"):
         if flow_file is not None:
             flow_data[i] = vertices_csc.toarray()
 
         # get curvature_normal_matrix
-        mass_mtx = mass_matrix(triangles, vertices_csc).astype(np.float)
+        mass_mtx = mass_matrix(triangles, vertices_csc).astype(float)
 
         # (D - d*L)*y = D*x = b
         A_matrix = mass_mtx - \

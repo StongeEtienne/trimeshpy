@@ -38,17 +38,23 @@ class TriMesh_Vtk(TriMesh):
             self.__polydata__ = vtk_u.load_polydata(mesh_filename)
             self.__polydata_is_up_to_date__ = True
             self.__polydata_color_is_scalars__ = None
-            TriMesh.__init__(self, self.get_polydata_triangles(),
-                             self.get_polydata_vertices(),
-                             dtype=dtype, atol=atol, assert_args=assert_args)
+            TriMesh.__init__(self,
+                             triangles=self.get_polydata_triangles(),
+                             vertices=self.get_polydata_vertices(),
+                             dtype=dtype,
+                             atol=atol,
+                             assert_args=assert_args)
         else:
             self.__polydata__ = None
             self.__polydata_is_up_to_date__ = False
             self.__polydata_color_is_scalars__ = None
-            TriMesh.__init__(self, triangles, vertices,
-                             dtype=dtype, atol=atol, assert_args=assert_args)
+            TriMesh.__init__(self,
+                             triangles=triangles,
+                             vertices=vertices,
+                             dtype=dtype,
+                             atol=atol,
+                             assert_args=assert_args)
 
-    # set and get, add an to update bool
     def set_triangles(self, triangles):
         TriMesh.set_triangles(self, triangles)
         self.__polydata_is_up_to_date__ = False
@@ -87,7 +93,7 @@ class TriMesh_Vtk(TriMesh):
 
     def set_polydata_triangles(self, triangles):
         vtk_triangles = np.hstack(
-            np.c_[np.ones(len(triangles)).astype(np.int32) * 3, triangles])
+            np.c_[np.ones(len(triangles)).astype(int) * 3, triangles])
         vtk_triangles = ns.numpy_to_vtkIdTypeArray(vtk_triangles, deep=True)
         vtk_cells = vtk.vtkCellArray()
         vtk_cells.SetCells(len(triangles), vtk_triangles)

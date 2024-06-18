@@ -133,8 +133,8 @@ class TestTriMesh(unittest.TestCase):
         is_acute = self.sphere.triangle_is_acute()
         is_right = self.sphere.triangle_is_right()
 
-        sum_type = (is_right.astype(np.int32) + is_acute.astype(np.int32)
-                    + is_obtuse.astype(np.int32))
+        sum_type = (is_right.astype(int) + is_acute.astype(int)
+                    + is_obtuse.astype(int))
         # Should have only one type
         self.is_equal(sum_type, 1)
 
@@ -181,7 +181,7 @@ class TestTriMesh(unittest.TestCase):
             self.assertTrue(value0 == value1)
         elif isinstance(value0, float):
             self.assertTrue(value0 == value1)
-        elif (value0.dtype is np.bool_ or
+        elif (value0.dtype is bool or
               np.issubdtype(value0.dtype, np.integer)):
             self.assertTrue(np.all(np.equal(value0, value1)))
         elif np.issubdtype(value0.dtype, np.floating):
