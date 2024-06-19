@@ -1,7 +1,5 @@
 # Etienne St-Onge
 
-
-
 import h5py
 import importlib
 import logging
@@ -157,7 +155,7 @@ def save_polydata(polydata, file_name, binary=False, color_array_name=None, lega
     writer.Write()
 
 
-def lines_to_vtk_polydata(lines, colors="RGB"):
+def lines_to_vtk_polydata(lines, colors=None):
     # Get the 3d points_array
     points_array = np.vstack(lines).astype(np.float32)
 
@@ -180,42 +178,16 @@ def lines_to_vtk_polydata(lines, colors="RGB"):
 
     # Set Points to vtk array format
     vtk_points = numpy_to_vtk_points(points_array)
-    lines_array = ns.numpy_to_vtk(lines_array, array_type=vtk.VTK_INT)
 
     # Set Lines to vtk array format
     vtk_lines = vtk.vtkCellArray()
-    vtk_lines.SetNumberOfCells(nb_lines)
-    vtk_lines.GetData().DeepCopy(lines_array)
-
-    # colors test, todo improve
-    if colors is not None:
-        if colors == "RGB":  # set automatic rgb colors
-            colors = np.abs(lines[:, -1] - lines[:, 0])
-            colors = 0.8 * colors / \
-                np.sqrt(np.sum(colors ** 2, axis=1, keepdims=True))
-            colors_mapper = np.repeat(lines_range, points_per_line, axis=0)
-            vtk_colors = numpy_to_vtk_colors(255 * colors[colors_mapper])
-        else:
-            colors = np.array(colors)
-            if colors.dtype == np.object:  # colors is a list of colors
-                vtk_colors = numpy_to_vtk_colors(255 * np.vstack(colors))
-            else:
-                # one colors per points / colormap way
-                if len(colors) == nb_points:
-                    vtk_colors = ns.numpy_to_vtk(colors, deep=True)
-                    raise NotImplementedError()
-
-                elif colors.ndim == 1:  # the same colors for all points
-                    vtk_colors = numpy_to_vtk_colors(
-                        np.tile(255 * colors, (nb_points, 1)))
-
-                elif colors.ndim == 2:  # map color to each line
-                    colors_mapper = np.repeat(
-                        lines_range, points_per_line, axis=0)
-                    vtk_colors = numpy_to_vtk_colors(
-                        255 * colors[colors_mapper])
-
-        vtk_colors.SetName("Colors")
+    if vtk.VTK_MAJOR_VERSION <= 8:
+        vtk_lines_array = ns.numpy_to_vtk(lines_array, array_type=vtk.VTK_INT)
+        vtk_lines.SetNumberOfCells(nb_lines)
+        vtk_lines.GetData().DeepCopy(vtk_lines_array)
+    else:
+        vtk_lines_array = ns.numpy_to_vtk(np.asarray(lines_array), deep=True, array_type=vtk.VTK_ID_TYPE)
+        vtk_lines.SetCells(nb_lines, vtk_lines_array)
 
     # Create the poly_data
     poly_data = vtk.vtkPolyData()
@@ -223,7 +195,41 @@ def lines_to_vtk_polydata(lines, colors="RGB"):
     poly_data.SetLines(vtk_lines)
 
     if colors is not None:
-        poly_data.GetPointData().SetScalars(vtk_colors)
+        vtk_colors = None
+        if (colors is True) or (isinstance(colors, str) and colors == "RGB"):
+            cols_arr = np.zeros_like(points_array)
+            cols_arr[1:] = np.diff(points_array, axis=0)
+            cols_arr[0] = cols_arr[1]
+            offsets = np.cumsum(points_per_line)
+            cols_arr[offsets[:-1]] = cols_arr[offsets[:-1]+1]
+            cols_arr[offsets-1] = cols_arr[offsets-2]
+            cols_arr = np.abs(cols_arr) / np.sqrt(np.sum(np.square(cols_arr), axis=1, keepdims=True))
+            vtk_colors = numpy_to_vtk_colors(255 * cols_arr)
+        else:
+            try:
+                colors = np.asarray(colors)
+                if colors.ndim == 1:  # the same colors for all points
+                    if len(colors) == 1 or len(colors) == 3 or len(colors) == 4:
+                        vtk_colors = numpy_to_vtk_colors(np.tile(255 * colors, (nb_points, 1)))
+                    elif len(colors) == nb_lines:
+                        colors_mapper = np.repeat(lines_range, points_per_line, axis=0)
+                        vtk_colors = numpy_to_vtk_colors(255 * colors[colors_mapper])
+                    elif len(colors) == nb_points:
+                        vtk_colors = numpy_to_vtk_colors(255 * colors)
+                if colors.ndim == 2:   # map color to each line
+                    colors_mapper = np.repeat(lines_range, points_per_line, axis=0)
+                    vtk_colors = numpy_to_vtk_colors(255 * colors[colors_mapper])
+
+            except ValueError:
+                if len(colors) == nb_lines:
+                    # assume one color per points in a list of list
+                    vtk_colors = numpy_to_vtk_colors(255 * np.vstack(colors))
+
+        if vtk_colors is not None:
+            vtk_colors.SetName("Colors")
+            poly_data.GetPointData().SetScalars(vtk_colors)
+        else:
+            raise NotImplementedError()
 
     return poly_data
 
