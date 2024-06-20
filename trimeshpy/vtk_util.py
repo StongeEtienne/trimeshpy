@@ -39,10 +39,7 @@ ns = import_vtk_numpy_support()
 def set_input(vtk_object, current_input):
     """ Generic input for vtk data, """
     if isinstance(current_input, vtk.vtkPolyData):
-        if vtk.VTK_MAJOR_VERSION <= 5:
-            vtk_object.SetInput(current_input)
-        else:
-            vtk_object.SetInputData(current_input)
+        vtk_object.SetInputData(current_input)
     elif isinstance(input, vtk.vtkAlgorithmOutput):
         vtk_object.SetInputConnection(current_input)
 
@@ -181,13 +178,8 @@ def lines_to_vtk_polydata(lines, colors=None):
 
     # Set Lines to vtk array format
     vtk_lines = vtk.vtkCellArray()
-    if vtk.VTK_MAJOR_VERSION <= 8:
-        vtk_lines_array = ns.numpy_to_vtk(lines_array, array_type=vtk.VTK_INT)
-        vtk_lines.SetNumberOfCells(nb_lines)
-        vtk_lines.GetData().DeepCopy(vtk_lines_array)
-    else:
-        vtk_lines_array = ns.numpy_to_vtk(np.asarray(lines_array), deep=True, array_type=vtk.VTK_ID_TYPE)
-        vtk_lines.SetCells(nb_lines, vtk_lines_array)
+    vtk_lines_array = ns.numpy_to_vtk(np.asarray(lines_array), deep=True, array_type=vtk.VTK_ID_TYPE)
+    vtk_lines.SetCells(nb_lines, vtk_lines_array)
 
     # Create the poly_data
     poly_data = vtk.vtkPolyData()

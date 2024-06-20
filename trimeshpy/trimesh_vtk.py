@@ -180,10 +180,7 @@ class TriMesh_Vtk(TriMesh):
         self.get_polydata().GetPointData().SetNormals(vtk_normals)
 
     def update(self):
-        if vtk.VTK_MAJOR_VERSION <= 5:
-            self.get_polydata().Update()
-        else:
-            self.update_polydata()
+        self.update_polydata()
 
     # Display :
     def get_vtk_polymapper(self):
@@ -252,10 +249,7 @@ class TriMesh_Vtk(TriMesh):
                 logging.info('Saving image...')
 
                 render_large = vtk.vtkRenderLargeImage()
-                if vtk.VTK_MAJOR_VERSION <= 5:
-                    render_large.SetInput(renderer)
-                else:
-                    render_large.SetInputData(renderer)
+                render_large.SetInputData(renderer)
 
                 render_large.SetMagnification(png_magnify)
                 render_large.Update()
@@ -278,7 +272,7 @@ class TriMesh_Vtk(TriMesh):
                  light=(0.2, 0.15, 0.05), background=(0.0, 0.0, 0.0),
                  display_colormap="Range", camera_rot=(0.0, 0.0, 0.0),
                  zoom=1.0, offscreen=True):
-        self.update()
+        self.update_polydata()
         renderer = vtk.vtkRenderer()
         actor = self.get_vtk_actor(light=light)
         renderer.AddActor(actor)
@@ -329,13 +323,10 @@ class TriMesh_Vtk(TriMesh):
 
     # Input for mapper or polydata
     def polydata_input(self, vtk_object):
-        if vtk.VTK_MAJOR_VERSION <= 5:
-            vtk_object.SetInput(self.get_polydata())
-        else:
-            vtk_object.SetInputData(self.get_polydata())
+        vtk_object.SetInputData(self.get_polydata())
         vtk_object.Update()
         return vtk_object
 
     def save(self, file_name):
-        self.update()
+        self.update_polydata()
         vtk_u.save_polydata(self.__polydata__, file_name)
