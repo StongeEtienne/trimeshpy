@@ -107,18 +107,17 @@ def main():
     spot_tmf.set_vertices_flow_from_hdf5(trimeshpy.data.output_test_flow)
     spot_tmf.display()
     spot_tmf.display_vertices_flow()
-    del sp_mesh, spot_tmf
 
     # Init Brain
-    b_mesh = TriMesh_Vtk(trimeshpy.data.brain_lh, None)
-    brain_tmf = TriMeshFlow_Vtk(b_mesh.get_triangles(), b_mesh.get_vertices())
-    brain_tmf.display()
-
-    brain_tmf.mass_stiffness_smooth(10, 30, flow_file=trimeshpy.data.output_test_flow)
-    brain_tmf.set_vertices_flow_from_hdf5(trimeshpy.data.output_test_flow)
-    brain_tmf.display()
-    brain_tmf.display_vertices_flow()
-    del b_mesh, brain_tmf
+    # b_mesh = TriMesh_Vtk(trimeshpy.data.brain_lh, None)
+    # brain_tmf = TriMeshFlow_Vtk(b_mesh.get_triangles(), b_mesh.get_vertices())
+    # brain_tmf.display()
+    #
+    # brain_tmf.mass_stiffness_smooth(10, 30, flow_file=trimeshpy.data.output_test_flow)
+    # brain_tmf.set_vertices_flow_from_hdf5(trimeshpy.data.output_test_flow)
+    # brain_tmf.display()
+    # brain_tmf.display_vertices_flow()
+    # del b_mesh, brain_tmf
 
 
 if __name__ == "__main__":

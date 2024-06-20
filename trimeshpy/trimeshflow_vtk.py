@@ -83,10 +83,7 @@ class TriMeshFlow_Vtk(TriMeshFlow, TriMesh_Vtk):
             if key == 's' or key == 'S':
                 logging.info('Saving image...')
                 renderLarge = vtk.vtkRenderLargeImage()
-                if vtk.VTK_MAJOR_VERSION <= 5:
-                    renderLarge.SetInput(renderer)
-                else:
-                    renderLarge.SetInputData(renderer)
+                renderLarge.SetInputData(renderer)
 
                 renderLarge.SetMagnification(png_magnify)
                 renderLarge.Update()

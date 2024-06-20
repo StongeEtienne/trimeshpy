@@ -14,7 +14,7 @@ setuptools.setup(
     name='trimeshpy',
     packages=setuptools.find_packages(),
     install_requires=REQUIREMENTS,
-    version='0.0.3',
+    version='0.0.4',
     license='MIT',
     author="Etienne St-Onge",
     author_email="Firstname.Lastname@usherbrooke.ca",
